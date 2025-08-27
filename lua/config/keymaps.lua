@@ -10,6 +10,17 @@ map('n', '<leader>q', '<cmd>quit<cr>', opts)
 map('n', '<leader><leader>', 'ZZ', opts)
 map('n', '<Esc>', '<cmd>nohl<cr>', opts)
 
+-- Clipboard behavior: specific deletions go to 'd' register (local only, not system clipboard)
+map('n', 'dd', '"ddd', opts)  -- Delete line to 'd' register
+map('n', 'D', '"dD', opts)    -- Delete to end of line to 'd' register
+map('n', 'de', '"dde', opts)  -- Delete to end of word to 'd' register
+map('n', 'd$', '"dd$', opts)  -- Delete to end of line to 'd' register
+map('n', 'C', '"dC', opts)    -- Change to end of line to 'd' register
+
+-- paste from d register without overwriting it
+map('x', '<space>p', '"dp', opts)
+map('n', '<space>P', '"dP', opts)
+
 -- nvim-tree keymaps
 map('n', '<leader>e', '<cmd>NvimTreeToggle<cr>', opts)
 
@@ -33,10 +44,7 @@ map('n', '<leader>ds', '<cmd>Telescope lsp_document_symbols<cr>', opts)
 map('n', '<leader>dr', '<cmd>Telescope lsp_references<cr>', opts)
 
 -- Neogit keymaps
-map('n', '<leader>gg', '<cmd>Neogit<cr>', opts)
-map('n', '<leader>gc', '<cmd>Neogit commit<cr>', opts)
-map('n', '<leader>gp', '<cmd>Neogit push<cr>', opts)
-map('n', '<leader>gP', '<cmd>Neogit pull<cr>', opts)
+map('n', '<leader>g', '<cmd>Neogit<cr>', opts)
 
 -- LSP keymaps
 -- Standard go-to keymaps (no leader)

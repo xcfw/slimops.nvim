@@ -20,6 +20,7 @@ vim.opt.number = true
 vim.opt.relativenumber = true
 vim.opt.mouse = "a"
 vim.opt.termguicolors = true  -- Essential for theme support
+vim.opt.clipboard = "unnamedplus"  -- Use system clipboard for yank operations
 
 -- Set up diagnostic signs early to avoid nvim-tree errors
 vim.fn.sign_define("DiagnosticSignError", { text = "", texthl = "DiagnosticSignError" })
@@ -213,6 +214,14 @@ require("lazy").setup({
           icons_enabled = true,
           theme = "auto", -- Change from catppuccin to auto
         },
+        sections = {
+          lualine_c = {
+            {
+              'filename',
+              path = 1, -- 0 = just filename, 1 = relative path, 2 = absolute path
+            }
+          }
+        }
       })
     end,
   },
@@ -389,7 +398,12 @@ require("lazy").setup({
       require("copilot").setup({
         suggestion = { enabled = false },
         panel = { enabled = false },
-	copilot_node_command = "node"
+	copilot_node_command = "node",
+        filetypes = {
+          gitcommit = true,  -- Enable Copilot for git commit messages
+          markdown = true,
+          yaml = true,
+        },
       })
     end,
   },
