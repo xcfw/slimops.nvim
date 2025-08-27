@@ -1,0 +1,126 @@
+-- lua/config/keymaps.lua
+-- Centralized keymaps for all plugins and Neovim functions
+
+local map = vim.keymap.set
+local opts = { noremap = true, silent = true }
+
+-- General keymaps
+map('n', '<leader>w', '<cmd>write<cr>', opts)
+map('n', '<leader>q', '<cmd>quit<cr>', opts)
+map('n', '<leader><leader>', 'ZZ', opts)
+map('n', '<Esc>', '<cmd>nohl<cr>', opts)
+
+-- nvim-tree keymaps
+map('n', '<leader>e', '<cmd>NvimTreeToggle<cr>', opts)
+
+-- Barbar keymaps (tabs/buffers)
+map('n', '<Tab>', '<cmd>BufferNext<cr>', opts)
+map('n', '<S-Tab>', '<cmd>BufferPrevious<cr>', opts)
+map('n', '<leader>bd', '<cmd>BufferClose<cr>', opts)
+map('n', '<leader>bp', '<cmd>BufferPin<cr>', opts)
+map('n', '<leader>1', '<cmd>BufferGoto 1<cr>', opts)
+map('n', '<leader>2', '<cmd>BufferGoto 2<cr>', opts)
+map('n', '<leader>3', '<cmd>BufferGoto 3<cr>', opts)
+map('n', '<leader>4', '<cmd>BufferGoto 4<cr>', opts)
+map('n', '<leader>5', '<cmd>BufferGoto 5<cr>', opts)
+
+-- Telescope keymaps
+map('n', '<leader>j', '<cmd>Telescope find_files<cr>', opts)
+map('n', '<leader>k', '<cmd>Telescope live_grep<cr>', opts)
+map('n', '<leader>l', '<cmd>Telescope oldfiles cwd_only=true<cr>', opts)
+map('n', '<leader>dh', '<cmd>Telescope help_tags<cr>', opts)
+map('n', '<leader>ds', '<cmd>Telescope lsp_document_symbols<cr>', opts)
+map('n', '<leader>dr', '<cmd>Telescope lsp_references<cr>', opts)
+
+-- Neogit keymaps
+map('n', '<leader>gg', '<cmd>Neogit<cr>', opts)
+map('n', '<leader>gc', '<cmd>Neogit commit<cr>', opts)
+map('n', '<leader>gp', '<cmd>Neogit push<cr>', opts)
+map('n', '<leader>gP', '<cmd>Neogit pull<cr>', opts)
+
+-- LSP keymaps
+-- Standard go-to keymaps (no leader)
+map('n', 'gd', '<cmd>lua vim.lsp.buf.definition()<cr>', opts)
+map('n', 'gD', '<cmd>lua vim.lsp.buf.declaration()<cr>', opts)
+map('n', 'gi', '<cmd>lua vim.lsp.buf.implementation()<cr>', opts)
+map('n', 'gr', '<cmd>lua vim.lsp.buf.references()<cr>', opts)
+map('n', 'K', '<cmd>lua vim.lsp.buf.hover()<cr>', opts)
+
+-- Space as LSP "leader" - organized by function
+-- Code actions and refactoring
+map('n', '<Space>ca', '<cmd>lua vim.lsp.buf.code_action()<cr>', opts)
+map('n', '<Space>rn', '<cmd>lua vim.lsp.buf.rename()<cr>', opts)
+map('n', '<Space>f', '<cmd>lua vim.lsp.buf.format({ async = true })<cr>', opts)
+
+-- Diagnostics
+map('n', '<Space>d', '<cmd>lua vim.diagnostic.open_float()<cr>', opts)
+map('n', '<Space>dl', '<cmd>lua vim.diagnostic.setloclist()<cr>', opts)
+map('n', '<Space>dq', '<cmd>lua vim.diagnostic.setqflist()<cr>', opts)
+
+-- Navigation (keep bracket style for consistency)
+map('n', '[d', '<cmd>lua vim.diagnostic.goto_prev()<cr>', opts)
+map('n', ']d', '<cmd>lua vim.diagnostic.goto_next()<cr>', opts)
+
+-- Workspace operations
+map('n', '<Space>wa', '<cmd>lua vim.lsp.buf.add_workspace_folder()<cr>', opts)
+map('n', '<Space>wr', '<cmd>lua vim.lsp.buf.remove_workspace_folder()<cr>', opts)
+map('n', '<Space>wl', '<cmd>lua print(vim.inspect(vim.lsp.buf.list_workspace_folders()))<cr>', opts)
+
+-- Copilot integration via nvim-cmp
+-- Tab/S-Tab for navigating completions (configured in init.lua)
+-- Copilot suggestions appear as completion items through copilot-cmp
+-- Use Enter to accept, Tab/S-Tab to navigate suggestions
+
+-- Window navigation
+map('n', '<C-h>', '<C-w>h', opts)
+map('n', '<C-j>', '<C-w>j', opts)
+map('n', '<C-k>', '<C-w>k', opts)
+map('n', '<C-l>', '<C-w>l', opts)
+
+-- Window resizing
+map('n', '<C-Up>', '<cmd>resize +2<cr>', opts)
+map('n', '<C-Down>', '<cmd>resize -2<cr>', opts)
+map('n', '<C-Left>', '<cmd>vertical resize -2<cr>', opts)
+map('n', '<C-Right>', '<cmd>vertical resize +2<cr>', opts)
+
+-- Terminal
+map('t', '<Esc>', '<C-\\><C-n>', opts)
+map('n', '<leader>t', '<cmd>ToggleTerm<cr>', opts)
+
+map('n', '<leader>s', '<cmd>2ToggleTerm<cr>', opts)
+map('t', '<C-\\>', '<cmd>ToggleTermToggleAll<cr>', opts)
+
+-- Claude Code integration (use terminal ID 1)
+local function claude_terminal()
+  require('toggleterm.terminal').Terminal:new({
+    id = 1,
+    cmd = 'claude code',
+    direction = 'horizontal',
+    size = 50
+  }):toggle()
+end
+map('n', ';a', claude_terminal, opts)
+
+-- Gitsigns keymaps
+map('n', ']c', '<cmd>Gitsigns next_hunk<cr>', opts)
+map('n', '[c', '<cmd>Gitsigns prev_hunk<cr>', opts)
+map('n', '<leader>hs', '<cmd>Gitsigns stage_hunk<cr>', opts)
+map('n', '<leader>hr', '<cmd>Gitsigns reset_hunk<cr>', opts)
+map('n', '<leader>hp', '<cmd>Gitsigns preview_hunk<cr>', opts)
+map('n', '<leader>hb', '<cmd>Gitsigns blame_line<cr>', opts)
+map('n', '<leader>tb', '<cmd>Gitsigns toggle_current_line_blame<cr>', opts)
+
+-- Comment.nvim keymaps
+-- gcc - toggle line comment
+-- gbc - toggle block comment
+-- gc{motion} - toggle comment over motion (e.g., gcap for paragraph)
+-- gb{motion} - toggle block comment over motion
+
+-- mini.surround keymaps (all use 's' as prefix)
+-- sa{motion}{char} - add surround around motion with char (e.g., saw" to surround word with quotes)
+-- sd{char} - delete surround char (e.g., sd" to remove quotes)
+-- sr{old}{new} - replace surround old with new (e.g., sr"' to change quotes to single quotes)
+-- sh - highlight current surround
+-- sn/sp - navigate to next/previous surround
+
+-- nvim-lastplace - no keymaps needed (automatic cursor position restoration) 
