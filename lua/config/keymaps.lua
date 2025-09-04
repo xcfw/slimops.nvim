@@ -93,33 +93,47 @@ map('n', '<C-Down>', '<cmd>resize -2<cr>', opts)
 map('n', '<C-Left>', '<cmd>vertical resize -2<cr>', opts)
 map('n', '<C-Right>', '<cmd>vertical resize +2<cr>', opts)
 
--- Terminal
+-- Terminal configurations using toggleterm
+-- Floating terminal (;s and C-\)
+local floating_terminal = function()
+  local Terminal = require('toggleterm.terminal').Terminal
+  return Terminal:new({
+  direction = 'float',
+  float_opts = {
+    border = 'curved',
+    winblend = 0,
+    highlights = {
+      border = 'Normal',
+      background = 'Normal',
+    },
+    width = math.floor(vim.o.columns * 0.8),
+    height = math.floor(vim.o.lines * 0.8),
+  },
+  })
+end
+
+local claude_terminal = function()
+  local Terminal = require('toggleterm.terminal').Terminal
+  return Terminal:new({
+  id = 2,
+  cmd = 'claude code',
+  direction = 'horizontal',
+  size = function()
+    return math.floor(vim.o.lines * 0.7)
+  end,
+  })
+end
+
+-- Terminal keymaps
 map('t', '<C-\\>', '<cmd>ToggleTermToggleAll<cr>', opts)
 map('t', '<C-h>', '<C-\\><C-n><C-w>h', opts)
 
-map('n', '<leader>s', '<cmd>2ToggleTerm<cr>', opts)
-
--- Claude Code integration (use terminal ID 1)
-local function claude_terminal()
-  require('toggleterm.terminal').Terminal:new({
-    id = 1,
-    cmd = 'claude code',
-    direction = 'horizontal',
-    size = function()
-      return math.floor(vim.o.lines * 0.7)
-    end,
-  }):toggle()
-end
-map('n', ';a', claude_terminal, opts)
+map('n', '<leader>s', function() floating_terminal():toggle() end, opts)
+map('n', '<leader>a', function() claude_terminal():toggle() end, opts)
 
 -- Gitsigns keymaps
 map('n', ']c', '<cmd>Gitsigns next_hunk<cr>', opts)
 map('n', '[c', '<cmd>Gitsigns prev_hunk<cr>', opts)
-map('n', '<leader>hs', '<cmd>Gitsigns stage_hunk<cr>', opts)
-map('n', '<leader>hr', '<cmd>Gitsigns reset_hunk<cr>', opts)
-map('n', '<leader>hp', '<cmd>Gitsigns preview_hunk<cr>', opts)
-map('n', '<leader>hb', '<cmd>Gitsigns blame_line<cr>', opts)
-map('n', '<leader>tb', '<cmd>Gitsigns toggle_current_line_blame<cr>', opts)
 
 -- Comment.nvim keymaps
 -- gcc - toggle line comment
