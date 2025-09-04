@@ -36,12 +36,14 @@ map('n', '<leader>4', '<cmd>BufferGoto 4<cr>', opts)
 map('n', '<leader>5', '<cmd>BufferGoto 5<cr>', opts)
 
 -- Telescope keymaps
-map('n', '<leader>j', '<cmd>Telescope find_files<cr>', opts)
-map('n', '<leader>k', '<cmd>Telescope live_grep<cr>', opts)
-map('n', '<leader>l', '<cmd>Telescope oldfiles cwd_only=true<cr>', opts)
-map('n', '<leader>dh', '<cmd>Telescope help_tags<cr>', opts)
-map('n', '<leader>ds', '<cmd>Telescope lsp_document_symbols<cr>', opts)
-map('n', '<leader>dr', '<cmd>Telescope lsp_references<cr>', opts)
+map('n', '<leader>j', '<cmd>lua require("telescope.builtin").find_files()<cr>', opts)
+map('n', '<leader>J', '<cmd>lua require("telescope.builtin").find_files({find_command={"rg","--ignore","--hidden","--files"}})<cr>', opts)
+map('n', '<leader>k', '<cmd>lua require("telescope.builtin").live_grep({additional_args={"--hidden"},glob_pattern="!node_modules/*"})<cr>', opts)
+map('n', '<leader>K', '<cmd>lua require("telescope.builtin").live_grep({additional_args={"--hidden","--no-ignore"}})<cr>', opts)
+map('n', '<leader>l', '<cmd>lua require("telescope.builtin").oldfiles({cwd_only=true})<cr>', opts)
+map('n', '<leader>dh', '<cmd>lua require("telescope.builtin").help_tags()<cr>', opts)
+map('n', '<leader>ds', '<cmd>lua require("telescope.builtin").lsp_document_symbols()<cr>', opts)
+map('n', '<leader>dr', '<cmd>lua require("telescope.builtin").lsp_references()<cr>', opts)
 
 -- Neogit keymaps
 map('n', '<leader>g', '<cmd>Neogit<cr>', opts)
@@ -92,11 +94,10 @@ map('n', '<C-Left>', '<cmd>vertical resize -2<cr>', opts)
 map('n', '<C-Right>', '<cmd>vertical resize +2<cr>', opts)
 
 -- Terminal
-map('t', '<Esc>', '<C-\\><C-n>', opts)
-map('n', '<leader>t', '<cmd>ToggleTerm<cr>', opts)
+map('t', '<C-\\>', '<cmd>ToggleTermToggleAll<cr>', opts)
+map('t', '<C-h>', '<C-\\><C-n><C-w>h', opts)
 
 map('n', '<leader>s', '<cmd>2ToggleTerm<cr>', opts)
-map('t', '<C-\\>', '<cmd>ToggleTermToggleAll<cr>', opts)
 
 -- Claude Code integration (use terminal ID 1)
 local function claude_terminal()
@@ -104,7 +105,9 @@ local function claude_terminal()
     id = 1,
     cmd = 'claude code',
     direction = 'horizontal',
-    size = 50
+    size = function()
+      return math.floor(vim.o.lines * 0.7)
+    end,
   }):toggle()
 end
 map('n', ';a', claude_terminal, opts)

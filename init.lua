@@ -22,6 +22,14 @@ vim.opt.mouse = "a"
 vim.opt.termguicolors = true  -- Essential for theme support
 vim.opt.clipboard = "unnamedplus"  -- Use system clipboard for yank operations
 
+-- Indentation settings
+vim.opt.tabstop = 2
+vim.opt.shiftwidth = 2
+vim.opt.softtabstop = 2
+vim.opt.expandtab = true
+vim.opt.smartindent = true
+vim.opt.autoindent = true
+
 -- Set up diagnostic signs early to avoid nvim-tree errors
 vim.fn.sign_define("DiagnosticSignError", { text = "", texthl = "DiagnosticSignError" })
 vim.fn.sign_define("DiagnosticSignWarn", { text = "", texthl = "DiagnosticSignWarn" })
@@ -441,6 +449,15 @@ require("lazy").setup({
     version = "*",
     config = function()
       require("mini.surround").setup()
+    end,
+  },
+
+  -- Smooth movement animations
+  {
+    "echasnovski/mini.animate",
+    version = "*",
+    config = function()
+      require("mini.animate").setup()
     end,
   },
 
