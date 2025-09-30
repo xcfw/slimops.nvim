@@ -20,7 +20,15 @@ vim.opt.number = true
 vim.opt.relativenumber = true
 vim.opt.mouse = "a"
 vim.opt.termguicolors = true  -- Essential for theme support
-vim.opt.clipboard = "unnamedplus"  -- Use system clipboard for yank operations
+vim.o.ignorecase = true
+vim.o.smartcase = true
+vim.o.inccommand = 'split'
+vim.o.cursorline = true
+
+-- to reduce startup time
+vim.schedule(function()
+  vim.o.clipboard = 'unnamedplus'
+end)
 
 -- Indentation settings
 vim.opt.tabstop = 2
@@ -40,11 +48,24 @@ vim.fn.sign_define("DiagnosticSignWarn", { text = "", texthl = "DiagnosticSignWa
 vim.fn.sign_define("DiagnosticSignInfo", { text = "", texthl = "DiagnosticSignInfo" })
 vim.fn.sign_define("DiagnosticSignHint", { text = "", texthl = "DiagnosticSignHint" })
 
--- Define nvim-tree specific diagnostic signs
-vim.fn.sign_define("NvimTreeDiagnosticErrorIcon", { text = "", texthl = "NvimTreeDiagnosticErrorIcon" })
-vim.fn.sign_define("NvimTreeDiagnosticWarnIcon", { text = "", texthl = "NvimTreeDiagnosticWarnIcon" })
-vim.fn.sign_define("NvimTreeDiagnosticInfoIcon", { text = "", texthl = "NvimTreeDiagnosticInfoIcon" })
-vim.fn.sign_define("NvimTreeDiagnosticHintIcon", { text = "", texthl = "NvimTreeDiagnosticHintIcon" })
+-- Define nvim-tree specific diagnostic signs with fallback highlight groups
+vim.fn.sign_define("NvimTreeDiagnosticErrorIcon", { text = "", texthl = "DiagnosticSignError" })
+vim.fn.sign_define("NvimTreeDiagnosticWarnIcon", { text = "", texthl = "DiagnosticSignWarn" })
+vim.fn.sign_define("NvimTreeDiagnosticInfoIcon", { text = "", texthl = "DiagnosticSignInfo" })
+vim.fn.sign_define("NvimTreeDiagnosticHintIcon", { text = "", texthl = "DiagnosticSignHint" })
+
+-- Helm and Go template filetype detection
+vim.filetype.add({
+  extension = {
+    gotmpl = 'helm',
+    tpl = 'helm',
+  },
+  pattern = {
+    [".*/templates/.*%.tpl"] = "helm",
+    [".*/templates/.*%.ya?ml"] = "helm",
+    ["helmfile.*%.ya?ml"] = "helm",
+  },
+})
 
 
 -- Load centralized keymaps BEFORE plugins
@@ -162,7 +183,7 @@ require("lazy").setup({
         ensure_installed = { 
           "dockerfile", "lua", "vim", "vimdoc", "javascript", "typescript", 
           "python", "go", "ruby", "html", "css", "json", "yaml", "terraform", 
-          "hcl", "markdown", "markdown_inline" 
+          "hcl", "markdown", "markdown_inline", "gotmpl", "helm" 
         },
         highlight = { enable = true },
         autotag = { enable = true },
@@ -217,7 +238,6 @@ require("lazy").setup({
       "hrsh7th/cmp-nvim-lsp",
     },
     config = function()
-      local lspconfig = require("lspconfig")
       local capabilities = require("cmp_nvim_lsp").default_capabilities()
 
       -- Configure individual LSP servers
@@ -225,22 +245,22 @@ require("lazy").setup({
       -- or use language-specific package managers
 
       -- Python LSP (install: pip install pyright)
-      lspconfig.pyright.setup({
+      vim.lsp.config.pyright = {
         capabilities = capabilities,
-      })
+      }
 
       -- Go LSP (install: go install golang.org/x/tools/gopls@latest)
-      lspconfig.gopls.setup({
+      vim.lsp.config.gopls = {
         capabilities = capabilities,
-      })
+      }
 
       -- Ruby LSP (install: gem install solargraph)
-      lspconfig.solargraph.setup({
+      vim.lsp.config.solargraph = {
         capabilities = capabilities,
-      })
+      }
 
       -- Lua LSP (install: brew install lua-language-server on macOS)
-      lspconfig.lua_ls.setup({
+      vim.lsp.config.lua_ls = {
         capabilities = capabilities,
         settings = {
           Lua = {
@@ -251,51 +271,54 @@ require("lazy").setup({
             },
           },
         },
-      })
+      }
 
       -- HTML LSP (install: npm install -g vscode-langservers-extracted)
-      lspconfig.html.setup({
+      vim.lsp.config.html = {
         capabilities = capabilities,
-      })
+      }
 
       -- CSS LSP (install: npm install -g vscode-langservers-extracted)
-      lspconfig.cssls.setup({
+      vim.lsp.config.cssls = {
         capabilities = capabilities,
-      })
+      }
 
       -- JSON LSP (install: npm install -g vscode-langservers-extracted)
-      lspconfig.jsonls.setup({
+      vim.lsp.config.jsonls = {
         capabilities = capabilities,
-      })
+      }
 
       -- TypeScript/JavaScript LSP (install: npm install -g typescript typescript-language-server)
-      lspconfig.ts_ls.setup({
+      vim.lsp.config.ts_ls = {
         capabilities = capabilities,
-      })
+      }
 
-      lspconfig.dockerls.setup({
+      vim.lsp.config.dockerls = {
         capabilities = capabilities,
-      })
+      }
 
-      lspconfig.helm_ls.setup {
+      vim.lsp.config.helm_ls = {
         capabilities = capabilities,
+        filetypes = { "helm" },
         settings = {
           ['helm-ls'] = {
             yamlls = {
               path = "yaml-language-server",
+              enabled = false,
             }
           }
         }
-      }      
+      }
 
       -- Tailwind CSS LSP (install: npm install -g @tailwindcss/language-server)
-      lspconfig.tailwindcss.setup({
+      vim.lsp.config.tailwindcss = {
         capabilities = capabilities,
-      })
+      }
 
       -- YAML LSP (install: npm install -g yaml-language-server)
-      lspconfig.yamlls.setup({
+      vim.lsp.config.yamlls = {
         capabilities = capabilities,
+        filetypes = { "yaml", "yaml.docker-compose", "yaml.gitlab" },
         settings = {
           yaml = {
             schemas = {
@@ -309,12 +332,19 @@ require("lazy").setup({
             completion = true,
           },
         },
-      })
+        on_attach = function(client, bufnr)
+          local filetype = vim.bo[bufnr].filetype
+          if filetype == "helm" then
+            vim.lsp.stop_client(client.id)
+          end
+        end,
+      }
 
       -- Terraform LSP (install: brew install terraform-ls on macOS, or download from HashiCorp)
-      lspconfig.terraformls.setup({
+      vim.lsp.config.terraformls = {
         capabilities = capabilities,
-      })
+      }
+
     end,
   },
   {
@@ -325,11 +355,10 @@ require("lazy").setup({
       "hrsh7th/cmp-nvim-lsp",
       "L3MON4D3/LuaSnip",
       "saadparwaiz1/cmp_luasnip",
-      "zbirenbaum/copilot-cmp",
+      -- "zbirenbaum/copilot-cmp", -- Temporarily disabled
     },
     config = function()
       local cmp = require("cmp")
-      require("copilot_cmp").setup()
       cmp.setup({
         snippet = {
           expand = function(args)
@@ -339,7 +368,7 @@ require("lazy").setup({
         sources = cmp.config.sources({
           { name = "nvim_lsp" },
           { name = "luasnip" },
-          { name = "copilot" },
+          -- { name = "copilot" }, -- Temporarily disabled
           { name = "buffer" },
           { name = "path" },
         }),
@@ -367,6 +396,9 @@ require("lazy").setup({
           end, { "i", "s" }),
         }),
       })
+      
+      -- Setup copilot-cmp after cmp (temporarily disabled)
+      -- require("copilot_cmp").setup()
     end,
   },
   {
@@ -420,6 +452,15 @@ require("lazy").setup({
     version = "*",
     config = function()
       require("mini.surround").setup()
+    end,
+  },
+
+  -- Auto-pairing brackets, quotes, etc.
+  {
+    "echasnovski/mini.pairs",
+    version = "*",
+    config = function()
+      require("mini.pairs").setup()
     end,
   },
 

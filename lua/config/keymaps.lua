@@ -5,7 +5,7 @@ local map = vim.keymap.set
 local opts = { noremap = true, silent = true }
 
 -- General keymaps
-map('n', '<leader>w', '<cmd>write<cr>', opts)
+map('n', '<leader>w', '<cmd>up<cr>', opts)
 map('n', '<leader>q', '<cmd>quit<cr>', opts)
 map('n', '<leader><leader>', 'ZZ', opts)
 map('n', '<Esc>', '<cmd>nohl<cr>', opts)
