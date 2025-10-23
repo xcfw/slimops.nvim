@@ -10,6 +10,10 @@ map('n', '<leader>q', '<cmd>quit<cr>', opts)
 map('n', '<leader><leader>', 'ZZ', opts)
 map('n', '<Esc>', '<cmd>nohl<cr>', opts)
 
+-- Copy file paths to system clipboard
+map('n', '<space>y', '<cmd>let @+ = expand("%")<cr>', opts)  -- Copy relative path
+map('n', '<space>Y', '<cmd>let @+ = expand("%:p")<cr>', opts)  -- Copy absolute path
+
 -- Clipboard behavior: specific deletions go to 'd' register (local only, not system clipboard)
 map('n', 'dd', '"ddd', opts)  -- Delete line to 'd' register
 map('n', 'D', '"dD', opts)    -- Delete to end of line to 'd' register
