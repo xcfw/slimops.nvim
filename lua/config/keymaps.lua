@@ -10,6 +10,11 @@ map('n', '<leader>q', '<cmd>quit<cr>', opts)
 map('n', '<leader><leader>', 'ZZ', opts)
 map('n', '<Esc>', '<cmd>nohl<cr>', opts)
 
+-- Page navigation (works in both buffers and terminal)
+local page_nav_modes = { 'n', 't' }
+map(page_nav_modes, '<M-j>', '<C-f>', opts)  -- Page down
+map(page_nav_modes, '<M-k>', '<C-b>', opts)  -- Page up
+
 -- Copy file paths to system clipboard
 map('n', '<space>y', '<cmd>let @+ = expand("%")<cr>', opts)  -- Copy relative path
 map('n', '<space>Y', '<cmd>let @+ = expand("%:p")<cr>', opts)  -- Copy absolute path
@@ -64,7 +69,34 @@ map('n', 'K', '<cmd>lua vim.lsp.buf.hover()<cr>', opts)
 -- Code actions and refactoring
 map('n', '<Space>ca', '<cmd>lua vim.lsp.buf.code_action()<cr>', opts)
 map('n', '<Space>rn', '<cmd>lua vim.lsp.buf.rename()<cr>', opts)
-map('n', '<Space>f', '<cmd>lua vim.lsp.buf.format({ async = true })<cr>', opts)
+map('n', '<Space>f', function()
+  local clients = vim.lsp.get_clients({ bufnr = vim.api.nvim_get_current_buf() })
+  local has_formatter = false
+  for _, client in ipairs(clients) do
+    if client.server_capabilities.documentFormattingProvider then
+      has_formatter = true
+      break
+    end
+  end
+
+  if has_formatter then
+    vim.lsp.buf.format({ async = true })
+  else
+    -- Use prettier with filetype-based parser for unnamed buffers
+    local ft = vim.bo.filetype
+    local parser_map = {
+      json = 'json',
+      yaml = 'yaml',
+      html = 'html',
+      css = 'css',
+      javascript = 'babel',
+      typescript = 'typescript',
+      markdown = 'markdown',
+    }
+    local parser = parser_map[ft] or ft
+    vim.cmd('%!prettier --parser ' .. parser)
+  end
+end, opts)
 
 -- Diagnostics
 map('n', '<Space>d', '<cmd>lua vim.diagnostic.open_float()<cr>', opts)

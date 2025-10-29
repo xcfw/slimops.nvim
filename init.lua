@@ -469,7 +469,11 @@ require("lazy").setup({
     "echasnovski/mini.animate",
     version = "*",
     config = function()
-      require("mini.animate").setup()
+      require("mini.animate").setup({
+        scroll = {
+          timing = function(_, n) return math.min(250 / n, 10) end,
+        },
+      })
     end,
   },
 
