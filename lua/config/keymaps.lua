@@ -43,7 +43,7 @@ map('n', '<leader>5', '<cmd>BufferGoto 5<cr>', opts)
 map('n', '<leader>j', '<cmd>lua require("telescope.builtin").find_files()<cr>', opts)
 map('n', '<leader>J', '<cmd>lua require("telescope.builtin").find_files({find_command={"rg","--ignore","--hidden","--files"}})<cr>', opts)
 map('n', '<leader>k', '<cmd>lua require("telescope.builtin").live_grep({additional_args={"--hidden"},glob_pattern="!node_modules/*"})<cr>', opts)
-map('n', '<leader>K', '<cmd>lua require("telescope.builtin").live_grep({additional_args={"--hidden","--no-ignore"}})<cr>', opts)
+map('n', '<leader>f', '<cmd>lua require("telescope.builtin").live_grep({additional_args={"--hidden","--no-ignore"}})<cr>', opts)
 map('n', '<leader>l', '<cmd>lua require("telescope.builtin").oldfiles({cwd_only=true})<cr>', opts)
 map('n', '<leader>dh', '<cmd>lua require("telescope.builtin").help_tags()<cr>', opts)
 map('n', '<leader>ds', '<cmd>lua require("telescope.builtin").lsp_document_symbols()<cr>', opts)
@@ -130,6 +130,7 @@ end
 
 -- Terminal keymaps
 map('t', '<C-\\>', '<cmd>ToggleTermToggleAll<cr>', opts)
+map('t', 'jk', '<C-\\><C-n>', opts)  -- Quick exit to normal mode
 map('t', '<C-h>', '<C-\\><C-n><C-w>h', opts)
 
 map('n', '<leader>s', function() floating_terminal():toggle() end, opts)
