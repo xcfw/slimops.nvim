@@ -25,6 +25,13 @@ vim.o.smartcase = true
 vim.o.inccommand = 'split'
 vim.o.cursorline = true
 
+-- text width
+vim.opt.textwidth = 80
+vim.opt.wrap = true
+vim.opt.linebreak = true
+vim.opt.colorcolumn = "80"
+vim.opt.formatoptions = "tcqjnl"  -- t=autowrap text, c=autowrap comments, q=allow gq formatting, j=remove comment leader when joining, n=recognize numbered lists, l=don't break long lines in insert mode
+
 -- to reduce startup time
 vim.schedule(function()
   vim.o.clipboard = 'unnamedplus'

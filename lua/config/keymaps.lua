@@ -80,19 +80,24 @@ map('n', '<Space>f', function()
   if has_formatter then
     vim.lsp.buf.format({ async = true })
   else
-    -- Use prettier with filetype-based parser for unnamed buffers
     local ft = vim.bo.filetype
-    local parser_map = {
-      json = 'json',
-      yaml = 'yaml',
-      html = 'html',
-      css = 'css',
-      javascript = 'babel',
-      typescript = 'typescript',
-      markdown = 'markdown',
-    }
-    local parser = parser_map[ft] or ft
-    vim.cmd('%!prettier --parser ' .. parser)
+    -- For text-based filetypes, use gq for textwidth wrapping
+    if ft == 'markdown' or ft == 'text' or ft == 'gitcommit' then
+      vim.cmd('normal! gggqG')
+    else
+      -- Use prettier with filetype-based parser for code
+      local parser_map = {
+        json = 'json',
+        yaml = 'yaml',
+        html = 'html',
+        css = 'css',
+        javascript = 'babel',
+        typescript = 'typescript',
+        markdown = 'markdown',
+      }
+      local parser = parser_map[ft] or ft
+      vim.cmd('%!prettier --parser ' .. parser)
+    end
   end
 end, opts)
 
