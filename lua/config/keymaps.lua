@@ -6,7 +6,7 @@ local opts = { noremap = true, silent = true }
 
 -- General keymaps
 map('n', '<leader>w', '<cmd>up<cr>', opts)
-map('n', '<leader>q', '<cmd>quit<cr>', opts)
+map('n', '<leader>q', '<cmd>BufferClose<cr>', opts)
 map('n', '<leader><leader>', 'ZZ', opts)
 map('n', '<Esc>', '<cmd>nohl<cr>', opts)
 
@@ -18,6 +18,7 @@ map(page_nav_modes, '<M-k>', '<C-b>', opts)  -- Page up
 -- Copy file paths to system clipboard
 map('n', '<space>y', '<cmd>let @+ = expand("%")<cr>', opts)  -- Copy relative path
 map('n', '<space>Y', '<cmd>let @+ = expand("%:p")<cr>', opts)  -- Copy absolute path
+map('n', '<space>u', '<cmd>let @+ = expand("%:t")<cr>', opts)  -- Copy filename only
 
 -- Clipboard behavior: specific deletions go to 'd' register (local only, not system clipboard)
 map('n', 'dd', '"ddd', opts)  -- Delete line to 'd' register
@@ -34,15 +35,12 @@ map('n', '<space>P', '"dP', opts)
 map('n', '<leader>e', '<cmd>NvimTreeToggle<cr>', opts)
 
 -- Barbar keymaps (tabs/buffers)
-map('n', '<Tab>', '<cmd>BufferNext<cr>', opts)
-map('n', '<S-Tab>', '<cmd>BufferPrevious<cr>', opts)
-map('n', '<leader>bd', '<cmd>BufferClose<cr>', opts)
-map('n', '<leader>bp', '<cmd>BufferPin<cr>', opts)
-map('n', '<leader>1', '<cmd>BufferGoto 1<cr>', opts)
-map('n', '<leader>2', '<cmd>BufferGoto 2<cr>', opts)
-map('n', '<leader>3', '<cmd>BufferGoto 3<cr>', opts)
-map('n', '<leader>4', '<cmd>BufferGoto 4<cr>', opts)
-map('n', '<leader>5', '<cmd>BufferGoto 5<cr>', opts)
+map('n', '<Tab>', '<C-^>', opts)
+map('n', '<S-Tab>', '<cmd>BufferNext<cr>', opts)
+map('n', '<M-1>', '<cmd>BufferGoto 1<cr>', opts)
+map('n', '<M-2>', '<cmd>BufferGoto 2<cr>', opts)
+map('n', '<M-3>', '<cmd>BufferGoto 3<cr>', opts)
+map('n', '<M-4>', '<cmd>BufferGoto 4<cr>', opts)
 
 -- Telescope keymaps
 map('n', '<leader>j', '<cmd>lua require("telescope.builtin").find_files()<cr>', opts)
@@ -150,9 +148,40 @@ end
 
 local claude_terminal = function()
   local Terminal = require('toggleterm.terminal').Terminal
+  local current_file = vim.fn.expand('%:p')
+  local cmd = 'claude code'
+
+  -- If there's a file open in the current buffer, pass it to Claude
+  if current_file ~= '' then
+    cmd = 'claude code "' .. current_file .. '"'
+  end
+
   return Terminal:new({
   id = 2,
-  cmd = 'claude code',
+  cmd = cmd,
+  direction = 'horizontal',
+  size = function()
+    return math.floor(vim.o.lines * 0.7)
+  end,
+  })
+end
+
+local claude_with_selection = function()
+  local Terminal = require('toggleterm.terminal').Terminal
+
+  -- Get the selected text
+  vim.cmd('normal! "vy')
+  local selected_text = vim.fn.getreg('v')
+
+  -- Escape double quotes and backslashes for shell safety
+  selected_text = selected_text:gsub('\\', '\\\\'):gsub('"', '\\"')
+
+  -- Pass selected text to Claude as initial prompt
+  local cmd = 'claude code "' .. selected_text .. '"'
+
+  return Terminal:new({
+  id = 2,
+  cmd = cmd,
   direction = 'horizontal',
   size = function()
     return math.floor(vim.o.lines * 0.7)
@@ -167,6 +196,7 @@ map('t', '<C-h>', '<C-\\><C-n><C-w>h', opts)
 
 map('n', '<leader>s', function() floating_terminal():toggle() end, opts)
 map('n', '<leader>a', function() claude_terminal():toggle() end, opts)
+map('v', '<leader>a', function() claude_with_selection():toggle() end, opts)
 
 -- Gitsigns keymaps
 map('n', ']c', '<cmd>Gitsigns next_hunk<cr>', opts)

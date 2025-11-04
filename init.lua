@@ -229,6 +229,21 @@ require("lazy").setup({
   {
     "romgrk/barbar.nvim",
     dependencies = { "nvim-tree/nvim-web-devicons" },
+    config = function()
+      require('barbar').setup({
+        animation = false,
+        auto_hide = false,
+        clickable = true,
+        exclude_ft = {'NvimTree'},
+        exclude_name = {},
+        icons = {
+          button = '',
+          filetype = {
+            enabled = true,
+          },
+        },
+      })
+    end,
   },
   
   -- LSP Configuration (intentionally without Mason to keep it minimal and simple)
@@ -460,7 +475,11 @@ require("lazy").setup({
     "echasnovski/mini.pairs",
     version = "*",
     config = function()
-      require("mini.pairs").setup()
+      require("mini.pairs").setup({
+        mappings = {
+          ['`'] = { action = 'closeopen', pair = '``', neigh_pattern = '[^`\\].', register = { cr = false } },
+        }
+      })
     end,
   },
 
@@ -524,11 +543,29 @@ require("lazy").setup({
   },
 
   -- Additional plugins
-  { 
+  {
     "nvim-tree/nvim-web-devicons",
     lazy = false,  -- Force immediate loading
   },
   { "nvim-lua/plenary.nvim" },
+
+  {
+    'MeanderingProgrammer/render-markdown.nvim',
+    dependencies = {
+      'nvim-treesitter/nvim-treesitter',
+      'nvim-tree/nvim-web-devicons' -- or 'echasnovski/mini.nvim'
+    },
+    opts = {},
+  },
+
+  -- Auto-reload buffers when files change on disk (for Claude Code)
+  {
+    "diogo464/hotreload.nvim",
+    event = "VeryLazy",
+    opts = {
+      interval = 1000,  -- Check every 500ms
+    },
+  },
 })
 
 -- Apply colorscheme after plugins are loaded
