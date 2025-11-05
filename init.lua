@@ -24,12 +24,13 @@ vim.o.ignorecase = true
 vim.o.smartcase = true
 vim.o.inccommand = 'split'
 vim.o.cursorline = true
+vim.g.python3_host_prog = '/Users/xcfw/.nvim-venv/bin/python'
 
 -- text width
-vim.opt.textwidth = 80
+vim.opt.textwidth = 100
 vim.opt.wrap = true
 vim.opt.linebreak = true
-vim.opt.colorcolumn = "80"
+vim.opt.colorcolumn = "100"
 vim.opt.formatoptions = "tcqjnl"  -- t=autowrap text, c=autowrap comments, q=allow gq formatting, j=remove comment leader when joining, n=recognize numbered lists, l=don't break long lines in insert mode
 
 -- to reduce startup time
@@ -73,7 +74,6 @@ vim.filetype.add({
     ["helmfile.*%.ya?ml"] = "helm",
   },
 })
-
 
 -- Load centralized keymaps BEFORE plugins
 require("config.keymaps")
@@ -377,7 +377,7 @@ require("lazy").setup({
       "hrsh7th/cmp-nvim-lsp",
       "L3MON4D3/LuaSnip",
       "saadparwaiz1/cmp_luasnip",
-      -- "zbirenbaum/copilot-cmp", -- Temporarily disabled
+      "zbirenbaum/copilot-cmp",
     },
     config = function()
       local cmp = require("cmp")
@@ -390,7 +390,7 @@ require("lazy").setup({
         sources = cmp.config.sources({
           { name = "nvim_lsp" },
           { name = "luasnip" },
-          -- { name = "copilot" }, -- Temporarily disabled
+          { name = "copilot" },
           { name = "buffer" },
           { name = "path" },
         }),
@@ -418,9 +418,9 @@ require("lazy").setup({
           end, { "i", "s" }),
         }),
       })
-      
-      -- Setup copilot-cmp after cmp (temporarily disabled)
-      -- require("copilot_cmp").setup()
+
+      -- Setup copilot-cmp after cmp
+      require("copilot_cmp").setup()
     end,
   },
   {
@@ -572,6 +572,47 @@ require("lazy").setup({
     opts = {
       interval = 1000,  -- Check every 500ms
     },
+  },
+
+  -- Code formatting
+  {
+    "stevearc/conform.nvim",
+    event = { "BufWritePre" },
+    cmd = { "ConformInfo" },
+    config = function()
+      require("conform").setup({
+        formatters_by_ft = {
+          lua = { "stylua" },
+          python = { "isort", "black" },
+          javascript = { "prettier" },
+          typescript = { "prettier" },
+          json = { "prettier" },
+          html = { "prettier" },
+          css = { "prettier" },
+          markdown = { "prettier" },
+          yaml = { "yamlfmt" },
+          dockerfile = { "hadolint" },
+          terraform = { "terraform_fmt" },
+          tf = { "terraform_fmt" },
+          hcl = { "terragrunt_hclfmt" },
+          helm = { "yamlfmt" },
+        },
+        formatters = {
+          hadolint = {
+            command = "hadolint",
+            args = { "--format", "json", "$FILENAME" },
+            stdin = false,
+          },
+          terragrunt_hclfmt = {
+            command = "terragrunt",
+            args = { "hclfmt", "--terragrunt-hclfmt-file", "$FILENAME" },
+            stdin = false,
+          },
+        },
+        format_on_save = nil,  -- Disabled by default, use manual formatting with <space>f
+        format_after_save = nil,
+      })
+    end,
   },
 })
 

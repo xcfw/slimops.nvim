@@ -68,37 +68,11 @@ map('n', 'K', '<cmd>lua vim.lsp.buf.hover()<cr>', opts)
 map('n', '<Space>ca', '<cmd>lua vim.lsp.buf.code_action()<cr>', opts)
 map('n', '<Space>rn', '<cmd>lua vim.lsp.buf.rename()<cr>', opts)
 map('n', '<Space>f', function()
-  local clients = vim.lsp.get_clients({ bufnr = vim.api.nvim_get_current_buf() })
-  local has_formatter = false
-  for _, client in ipairs(clients) do
-    if client.server_capabilities.documentFormattingProvider then
-      has_formatter = true
-      break
-    end
-  end
-
-  if has_formatter then
-    vim.lsp.buf.format({ async = true })
-  else
-    local ft = vim.bo.filetype
-    -- For text-based filetypes, use gq for textwidth wrapping
-    if ft == 'markdown' or ft == 'text' or ft == 'gitcommit' then
-      vim.cmd('normal! gggqG')
-    else
-      -- Use prettier with filetype-based parser for code
-      local parser_map = {
-        json = 'json',
-        yaml = 'yaml',
-        html = 'html',
-        css = 'css',
-        javascript = 'babel',
-        typescript = 'typescript',
-        markdown = 'markdown',
-      }
-      local parser = parser_map[ft] or ft
-      vim.cmd('%!prettier --parser ' .. parser)
-    end
-  end
+  require("conform").format({
+    async = true,
+    lsp_fallback = true,
+    timeout_ms = 3000,
+  })
 end, opts)
 
 -- Diagnostics
