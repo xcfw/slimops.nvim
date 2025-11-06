@@ -69,7 +69,6 @@ map('n', '<Space>ca', '<cmd>lua vim.lsp.buf.code_action()<cr>', opts)
 map('n', '<Space>rn', '<cmd>lua vim.lsp.buf.rename()<cr>', opts)
 map('n', '<Space>f', function()
   require("conform").format({
-    async = true,
     lsp_fallback = true,
     timeout_ms = 3000,
   })
