@@ -394,6 +394,19 @@ require("lazy").setup({
           { name = "buffer" },
           { name = "path" },
         }),
+        formatting = {
+          format = function(entry, vim_item)
+            -- Replace source names with custom text/icons
+            vim_item.menu = ({
+              nvim_lsp = "[LSP]",
+              luasnip = "[Snip]",
+              copilot = "[CMP]",
+              buffer = "[Buf]",
+              path = "[Path]",
+            })[entry.source.name]
+            return vim_item
+          end,
+        },
         mapping = cmp.mapping.preset.insert({
           ["<C-d>"] = cmp.mapping.scroll_docs(-4),
           ["<C-f>"] = cmp.mapping.scroll_docs(4),
@@ -417,6 +430,9 @@ require("lazy").setup({
             end
           end, { "i", "s" }),
         }),
+        experimental = {
+          ghost_text = true,
+        },
       })
 
       -- Setup copilot-cmp after cmp
@@ -431,6 +447,11 @@ require("lazy").setup({
       require("copilot").setup({
         suggestion = { enabled = false },
         panel = { enabled = false },
+        workspace_folders = {
+          "/Users/xcfw/dev/",
+          "/Users/xcfw/tools/",
+          "/Users/xcfw/.config/"
+        },
 	copilot_node_command = "node",
         filetypes = {
           gitcommit = true,  -- Enable Copilot for git commit messages
