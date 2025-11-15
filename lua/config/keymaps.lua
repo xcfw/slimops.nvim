@@ -124,48 +124,57 @@ local floating_terminal = function()
   })
 end
 
-local claude_terminal = function()
-  local Terminal = require('toggleterm.terminal').Terminal
-  local current_file = vim.fn.expand('%:p')
-  local cmd = 'claude code'
+-- Factory function to create Claude terminal configurations
+local create_claude_terminal = function(base_cmd, terminal_id)
+  return {
+    with_file = function()
+      local Terminal = require('toggleterm.terminal').Terminal
+      local current_file = vim.fn.expand('%:p')
+      local cmd = base_cmd .. ' '
 
-  -- If there's a file open in the current buffer, pass it to Claude
-  if current_file ~= '' then
-    cmd = 'claude code "' .. current_file .. '"'
-  end
+      -- If there's a file open in the current buffer, pass it to Claude
+      if current_file ~= '' then
+        cmd = base_cmd .. ' "' .. current_file .. '"'
+      end
 
-  return Terminal:new({
-  id = 2,
-  cmd = cmd,
-  direction = 'horizontal',
-  size = function()
-    return math.floor(vim.o.lines * 0.7)
-  end,
-  })
+      return Terminal:new({
+        id = terminal_id,
+        cmd = cmd,
+        direction = 'horizontal',
+        size = function()
+          return math.floor(vim.o.lines * 0.7)
+        end,
+      })
+    end,
+
+    with_selection = function()
+      local Terminal = require('toggleterm.terminal').Terminal
+
+      -- Get the selected text
+      vim.cmd('normal! "vy')
+      local selected_text = vim.fn.getreg('v')
+
+      -- Escape double quotes and backslashes for shell safety
+      selected_text = selected_text:gsub('\\', '\\\\'):gsub('"', '\\"')
+
+      -- Pass selected text to Claude as initial prompt
+      local cmd = base_cmd .. ' "' .. selected_text .. '"'
+
+      return Terminal:new({
+        id = terminal_id,
+        cmd = cmd,
+        direction = 'horizontal',
+        size = function()
+          return math.floor(vim.o.lines * 0.7)
+        end,
+      })
+    end
+  }
 end
 
-local claude_with_selection = function()
-  local Terminal = require('toggleterm.terminal').Terminal
-
-  -- Get the selected text
-  vim.cmd('normal! "vy')
-  local selected_text = vim.fn.getreg('v')
-
-  -- Escape double quotes and backslashes for shell safety
-  selected_text = selected_text:gsub('\\', '\\\\'):gsub('"', '\\"')
-
-  -- Pass selected text to Claude as initial prompt
-  local cmd = 'claude code "' .. selected_text .. '"'
-
-  return Terminal:new({
-  id = 2,
-  cmd = cmd,
-  direction = 'horizontal',
-  size = function()
-    return math.floor(vim.o.lines * 0.7)
-  end,
-  })
-end
+-- Create terminal instances for different Claude configurations
+local claude_default = create_claude_terminal('claude', 2)
+local claude_work = create_claude_terminal('CLAUDE_CONFIG_DIR=~/.claude-work claude', 3)
 
 -- Terminal keymaps
 map('t', '<C-\\>', '<cmd>ToggleTermToggleAll<cr>', opts)
@@ -173,8 +182,10 @@ map('t', 'jk', '<C-\\><C-n>', opts)  -- Quick exit to normal mode
 map('t', '<C-h>', '<C-\\><C-n><C-w>h', opts)
 
 map('n', '<leader>s', function() floating_terminal():toggle() end, opts)
-map('n', '<leader>a', function() claude_terminal():toggle() end, opts)
-map('v', '<leader>a', function() claude_with_selection():toggle() end, opts)
+map('n', '<leader>a', function() claude_default.with_file():toggle() end, opts)
+map('v', '<leader>a', function() claude_default.with_selection():toggle() end, opts)
+map('n', '<leader>d', function() claude_work.with_file():toggle() end, opts)
+map('v', '<leader>d', function() claude_work.with_selection():toggle() end, opts)
 
 -- Gitsigns keymaps
 map('n', ']c', '<cmd>Gitsigns next_hunk<cr>', opts)
