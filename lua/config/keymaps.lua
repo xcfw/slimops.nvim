@@ -37,15 +37,33 @@ map('n', '<leader>e', '<cmd>NvimTreeToggle<cr>', opts)
 -- Barbar keymaps (tabs/buffers)
 map('n', '<Tab>', '<C-^>', opts)
 map('n', '<S-Tab>', '<cmd>BufferNext<cr>', opts)
-map('n', '<M-1>', '<cmd>BufferGoto 1<cr>', opts)
-map('n', '<M-2>', '<cmd>BufferGoto 2<cr>', opts)
-map('n', '<M-3>', '<cmd>BufferGoto 3<cr>', opts)
-map('n', '<M-4>', '<cmd>BufferGoto 4<cr>', opts)
+for i = 1, 4 do
+  map('n', '<M-' .. i .. '>', '<cmd>BufferGoto ' .. i .. '<cr>', opts)
+end
 
 -- Telescope keymaps
 map('n', '<leader>j', '<cmd>lua require("telescope.builtin").find_files()<cr>', opts)
-map('n', '<leader>J', '<cmd>lua require("telescope.builtin").find_files({find_command={"rg","--ignore","--hidden","--files"}})<cr>', opts)
-map('n', '<leader>k', '<cmd>lua require("telescope.builtin").live_grep({additional_args={"--hidden"},glob_pattern="!node_modules/*"})<cr>', opts)
+-- map('n', '<leader>J', '<cmd>lua require("telescope.builtin").find_files({find_command={"rg","--no-ignore","--hidden","--files"}})<cr>', opts)
+map('n', '<leader>J', function()
+    require("telescope.builtin").find_files({
+        find_command = {
+            "rg",
+            "--files",
+            "--hidden",
+            "--no-ignore",
+            -- ⬇️ Explicit Exclusions (Glob Rules) ⬇️
+            "--glob", "!**/.git/*",
+            "--glob", "!**/node_modules/*",
+            "--glob", "!**/target/*",       -- Rust/Caches
+            "--glob", "!**/build/*",
+            "--glob", "!**/dist/*",
+            "--glob", "!**/.cache/*",
+            "--glob", "!**/.local/share/*", -- Various hidden caches/data
+            "--glob", "!**/.npm/*",
+        }
+    })
+end, opts)
+map('n', '<leader>k', '<cmd>lua require("telescope").extensions.live_grep_args.live_grep_args()<cr>', opts)
 map('n', '<leader>f', '<cmd>lua require("telescope.builtin").live_grep({additional_args={"--hidden","--no-ignore"}})<cr>', opts)
 map('n', '<leader>l', '<cmd>lua require("telescope.builtin").oldfiles({cwd_only=true})<cr>', opts)
 map('n', '<leader>dh', '<cmd>lua require("telescope.builtin").help_tags()<cr>', opts)
@@ -94,16 +112,9 @@ map('n', '<Space>wl', '<cmd>lua print(vim.inspect(vim.lsp.buf.list_workspace_fol
 -- Use Enter to accept, Tab/S-Tab to navigate suggestions
 
 -- Window navigation
-map('n', '<C-h>', '<C-w>h', opts)
-map('n', '<C-j>', '<C-w>j', opts)
-map('n', '<C-k>', '<C-w>k', opts)
-map('n', '<C-l>', '<C-w>l', opts)
-
--- Window resizing
-map('n', '<C-Up>', '<cmd>resize +2<cr>', opts)
-map('n', '<C-Down>', '<cmd>resize -2<cr>', opts)
-map('n', '<C-Left>', '<cmd>vertical resize -2<cr>', opts)
-map('n', '<C-Right>', '<cmd>vertical resize +2<cr>', opts)
+for _, key in ipairs({'h', 'j', 'k', 'l'}) do
+  map('n', '<C-' .. key .. '>', '<C-w>' .. key, opts)
+end
 
 -- Terminal configurations using toggleterm
 -- Floating terminal (;s and C-\)
@@ -124,68 +135,21 @@ local floating_terminal = function()
   })
 end
 
--- Factory function to create Claude terminal configurations
-local create_claude_terminal = function(base_cmd, terminal_id)
-  return {
-    with_file = function()
-      local Terminal = require('toggleterm.terminal').Terminal
-      local current_file = vim.fn.expand('%:p')
-      local cmd = base_cmd .. ' '
-
-      -- If there's a file open in the current buffer, pass it to Claude
-      if current_file ~= '' then
-        cmd = base_cmd .. ' "' .. current_file .. '"'
-      end
-
-      return Terminal:new({
-        id = terminal_id,
-        cmd = cmd,
-        direction = 'horizontal',
-        size = function()
-          return math.floor(vim.o.lines * 0.7)
-        end,
-      })
-    end,
-
-    with_selection = function()
-      local Terminal = require('toggleterm.terminal').Terminal
-
-      -- Get the selected text
-      vim.cmd('normal! "vy')
-      local selected_text = vim.fn.getreg('v')
-
-      -- Escape double quotes and backslashes for shell safety
-      selected_text = selected_text:gsub('\\', '\\\\'):gsub('"', '\\"')
-
-      -- Pass selected text to Claude as initial prompt
-      local cmd = base_cmd .. ' "' .. selected_text .. '"'
-
-      return Terminal:new({
-        id = terminal_id,
-        cmd = cmd,
-        direction = 'horizontal',
-        size = function()
-          return math.floor(vim.o.lines * 0.7)
-        end,
-      })
-    end
-  }
-end
-
--- Create terminal instances for different Claude configurations
-local claude_default = create_claude_terminal('claude', 2)
-local claude_work = create_claude_terminal('CLAUDE_CONFIG_DIR=~/.claude-work claude', 3)
-
 -- Terminal keymaps
 map('t', '<C-\\>', '<cmd>ToggleTermToggleAll<cr>', opts)
 map('t', 'jk', '<C-\\><C-n>', opts)  -- Quick exit to normal mode
 map('t', '<C-h>', '<C-\\><C-n><C-w>h', opts)
 
 map('n', '<leader>s', function() floating_terminal():toggle() end, opts)
-map('n', '<leader>a', function() claude_default.with_file():toggle() end, opts)
-map('v', '<leader>a', function() claude_default.with_selection():toggle() end, opts)
-map('n', '<leader>d', function() claude_work.with_file():toggle() end, opts)
-map('v', '<leader>d', function() claude_work.with_selection():toggle() end, opts)
+
+-- Claude terminals (copy path/selection to clipboard, then open terminal)
+map('n', '<leader>a', function() require('claude-prompt').open_default() end, opts)
+map('v', '<leader>a', function() require('claude-prompt').open_default_visual() end, opts)
+map('n', '<leader>d', function() require('claude-prompt').open_work() end, opts)
+map('v', '<leader>d', function() require('claude-prompt').open_work_visual() end, opts)
+
+-- Terminal picker
+map('n', '<M-\\>', '<cmd>Telescope termfinder find<cr>', opts)
 
 -- Gitsigns keymaps
 map('n', ']c', '<cmd>Gitsigns next_hunk<cr>', opts)

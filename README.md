@@ -1,4 +1,4 @@
-# Neovim Configuration
+# Slim Ops Neovim Configuration
 
 A simple Neovim setup that tries to balance minimal complexity with useful functionality for daily coding tasks.
 

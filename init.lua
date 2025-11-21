@@ -496,12 +496,37 @@ require("lazy").setup({
 		end,
 	},
 
-	-- Fuzzy finder
+	-- GitHub link integration - open files in browser
+	{
+		"linrongbin16/gitlinker.nvim",
+		config = function()
+			local gitlinker = require("gitlinker")
+			gitlinker.setup()
+			-- Set up custom keymaps that open in browser
+			vim.keymap.set(
+				{ "n", "v" },
+				"<leader>gu",
+				function()
+					gitlinker.link({ action = vim.ui.open })
+				end,
+				{ desc = "Open GitHub URL in browser" }
+			)
+		end,
+	},
+
 	{
 		"nvim-telescope/telescope.nvim",
-		dependencies = { "nvim-lua/plenary.nvim" },
+		dependencies = {
+			"nvim-lua/plenary.nvim",
+			{
+				"nvim-telescope/telescope-live-grep-args.nvim",
+				version = "^1.0.0",
+			},
+		},
 		config = function()
-			require("telescope").setup()
+			local telescope = require("telescope")
+			telescope.setup()
+			telescope.load_extension("live_grep_args")
 		end,
 	},
 
@@ -612,6 +637,22 @@ require("lazy").setup({
 		lazy = false, -- Force immediate loading
 	},
 	{ "nvim-lua/plenary.nvim" },
+
+	-- Claude terminal integration
+	{
+		dir = "~/.config/nvim/lua/claude-prompt",
+		name = "claude-prompt",
+		dependencies = { "akinsho/toggleterm.nvim" },
+	},
+
+	-- Telescope terminal picker
+	{
+		"tknightz/telescope-termfinder.nvim",
+		dependencies = { "nvim-telescope/telescope.nvim", "akinsho/toggleterm.nvim" },
+		config = function()
+			require("telescope").load_extension("termfinder")
+		end,
+	},
 
 	{
 		"MeanderingProgrammer/render-markdown.nvim",
