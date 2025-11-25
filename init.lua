@@ -103,7 +103,6 @@ require("lazy").setup({
 		"nvim-tree/nvim-tree.lua",
 		version = "*",
 		lazy = false,
-		cmd = { "NvimTreeToggle", "NvimTreeOpen", "NvimTreeFindFile" },
 		dependencies = {
 			"nvim-tree/nvim-web-devicons",
 		},
@@ -219,8 +218,6 @@ require("lazy").setup({
 					"helm",
 				},
 				highlight = { enable = true },
-				autotag = { enable = true },
-				context_commentstring = { enable = true },
 				indent = { enable = true },
 				incremental_selection = {
 					enable = true,
@@ -489,7 +486,7 @@ require("lazy").setup({
 
 	-- Git integration
 	{
-		"TimUntersberger/neogit",
+		"NeogitOrg/neogit",
 		dependencies = { "nvim-lua/plenary.nvim" },
 		config = function()
 			require("neogit").setup()
@@ -617,7 +614,7 @@ require("lazy").setup({
 						"help",
 						"alpha",
 						"dashboard",
-						"neo-tree",
+						"nvim-tree",
 						"Trouble",
 						"trouble",
 						"lazy",

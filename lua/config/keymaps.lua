@@ -66,12 +66,12 @@ end, opts)
 map('n', '<leader>k', '<cmd>lua require("telescope").extensions.live_grep_args.live_grep_args()<cr>', opts)
 map('n', '<leader>f', '<cmd>lua require("telescope.builtin").live_grep({additional_args={"--hidden","--no-ignore"}})<cr>', opts)
 map('n', '<leader>l', '<cmd>lua require("telescope.builtin").oldfiles({cwd_only=true})<cr>', opts)
-map('n', '<leader>dh', '<cmd>lua require("telescope.builtin").help_tags()<cr>', opts)
-map('n', '<leader>ds', '<cmd>lua require("telescope.builtin").lsp_document_symbols()<cr>', opts)
-map('n', '<leader>dr', '<cmd>lua require("telescope.builtin").lsp_references()<cr>', opts)
+map('n', '<leader>gh', '<cmd>lua require("telescope.builtin").help_tags()<cr>', opts)
+map('n', '<leader>gs', '<cmd>lua require("telescope.builtin").lsp_document_symbols()<cr>', opts)
+map('n', '<leader>gr', '<cmd>lua require("telescope.builtin").lsp_references()<cr>', opts)
 
 -- Neogit keymaps
-map('n', '<leader>g', '<cmd>Neogit<cr>', opts)
+map('n', '<leader>gg', '<cmd>Neogit<cr>', opts)
 
 -- LSP keymaps
 -- Standard go-to keymaps (no leader)
@@ -137,7 +137,7 @@ end
 
 -- Terminal keymaps
 map('t', '<C-\\>', '<cmd>ToggleTermToggleAll<cr>', opts)
-map('t', 'jk', '<C-\\><C-n>', opts)  -- Quick exit to normal mode
+map('t', 'lj', '<C-\\><C-n>', opts)  -- Quick exit to normal mode
 map('t', '<C-h>', '<C-\\><C-n><C-w>h', opts)
 
 map('n', '<leader>s', function() floating_terminal():toggle() end, opts)
@@ -148,8 +148,18 @@ map('v', '<leader>a', function() require('claude-prompt').open_default_visual() 
 map('n', '<leader>d', function() require('claude-prompt').open_work() end, opts)
 map('v', '<leader>d', function() require('claude-prompt').open_work_visual() end, opts)
 
--- Terminal picker
-map('n', '<M-\\>', '<cmd>Telescope termfinder find<cr>', opts)
+-- Terminal picker (compact dialog, normal mode for hjkl navigation)
+map('n', '<M-\\>', function()
+  require('telescope').extensions.termfinder.find({
+    initial_mode = 'normal',
+    layout_strategy = 'vertical',
+    layout_config = {
+      width = 0.4,
+      height = 0.4,
+      prompt_position = 'top',
+    },
+  })
+end, opts)
 
 -- Gitsigns keymaps
 map('n', ']c', '<cmd>Gitsigns next_hunk<cr>', opts)

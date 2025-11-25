@@ -3,13 +3,19 @@
 
 local M = {}
 
+-- Cache terminal instances for proper toggling
+local terminals = {}
+
 local function toggle_terminal(id, cmd)
-  require('toggleterm.terminal').Terminal:new({
-    id = id,
-    cmd = cmd,
-    direction = 'horizontal',
-    size = function() return math.floor(vim.o.lines * 0.7) end,
-  }):toggle()
+  if not terminals[id] then
+    terminals[id] = require('toggleterm.terminal').Terminal:new({
+      id = id,
+      cmd = cmd,
+      direction = 'horizontal',
+      size = function() return math.floor(vim.o.lines * 0.7) end,
+    })
+  end
+  terminals[id]:toggle()
 end
 
 local function copy_path_and_open(id, cmd)
@@ -32,7 +38,7 @@ function M.open_default()
 end
 
 function M.open_work()
-  copy_path_and_open(11, 'claude --profile work')
+  copy_path_and_open(11, 'CLAUDE_CONFIG_DIR=~/.claude-work claude')
 end
 
 -- Visual mode: copy selection
@@ -41,7 +47,7 @@ function M.open_default_visual()
 end
 
 function M.open_work_visual()
-  copy_selection_and_open(11, 'claude --profile work')
+  copy_selection_and_open(11, 'CLAUDE_CONFIG_DIR=~/.claude-work claude')
 end
 
 return M
