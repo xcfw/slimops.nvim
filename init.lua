@@ -1,7 +1,7 @@
 -- init.lua
 -- Bootstrap lazy.nvim
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
-if not vim.loop.fs_stat(lazypath) then
+if not vim.uv.fs_stat(lazypath) then
 	vim.fn.system({
 		"git",
 		"clone",
@@ -24,7 +24,7 @@ vim.o.ignorecase = true
 vim.o.smartcase = true
 vim.o.inccommand = "split"
 vim.o.cursorline = true
-vim.g.python3_host_prog = "/Users/xcfw/.nvim-venv/bin/python"
+vim.g.python3_host_prog = vim.fn.expand("~/.nvim-venv/bin/python")
 
 -- text width
 vim.opt.textwidth = 100
@@ -50,17 +50,17 @@ vim.opt.autoindent = true
 vim.opt.undofile = true
 vim.opt.undolevels = 999
 
--- Set up diagnostic signs early to avoid nvim-tree errors
-vim.fn.sign_define("DiagnosticSignError", { text = "", texthl = "DiagnosticSignError" })
-vim.fn.sign_define("DiagnosticSignWarn", { text = "", texthl = "DiagnosticSignWarn" })
-vim.fn.sign_define("DiagnosticSignInfo", { text = "", texthl = "DiagnosticSignInfo" })
-vim.fn.sign_define("DiagnosticSignHint", { text = "", texthl = "DiagnosticSignHint" })
-
--- Define nvim-tree specific diagnostic signs with fallback highlight groups
-vim.fn.sign_define("NvimTreeDiagnosticErrorIcon", { text = "", texthl = "DiagnosticSignError" })
-vim.fn.sign_define("NvimTreeDiagnosticWarnIcon", { text = "", texthl = "DiagnosticSignWarn" })
-vim.fn.sign_define("NvimTreeDiagnosticInfoIcon", { text = "", texthl = "DiagnosticSignInfo" })
-vim.fn.sign_define("NvimTreeDiagnosticHintIcon", { text = "", texthl = "DiagnosticSignHint" })
+-- Diagnostic signs (Neovim 0.10+ API)
+vim.diagnostic.config({
+	signs = {
+		text = {
+			[vim.diagnostic.severity.ERROR] = "",
+			[vim.diagnostic.severity.WARN] = "",
+			[vim.diagnostic.severity.INFO] = "",
+			[vim.diagnostic.severity.HINT] = "",
+		},
+	},
+})
 
 -- Helm and Go template filetype detection
 vim.filetype.add({
@@ -117,15 +117,7 @@ require("lazy").setup({
 					ignore = false,
 				},
 				diagnostics = {
-					enable = true,
-					show_on_dirs = true,
-					debounce_delay = 50,
-					icons = {
-						hint = "",
-						info = "",
-						warning = "",
-						error = "",
-					},
+					enable = false, -- Disabled to avoid sign placement conflicts
 				},
 				actions = {
 					open_file = {
@@ -277,6 +269,7 @@ require("lazy").setup({
 	},
 
 	-- LSP Configuration (intentionally without Mason to keep it minimal and simple)
+	-- Using native Neovim 0.11+ vim.lsp.config API
 	{
 		"neovim/nvim-lspconfig",
 		dependencies = {
@@ -285,28 +278,13 @@ require("lazy").setup({
 		config = function()
 			local capabilities = require("cmp_nvim_lsp").default_capabilities()
 
-			-- Configure individual LSP servers
-			-- You'll need to install these manually via your system package manager
-			-- or use language-specific package managers
-
-			-- Python LSP (install: pip install pyright)
-			vim.lsp.config.pyright = {
+			-- Set capabilities for all LSP servers globally
+			vim.lsp.config("*", {
 				capabilities = capabilities,
-			}
-
-			-- Go LSP (install: go install golang.org/x/tools/gopls@latest)
-			vim.lsp.config.gopls = {
-				capabilities = capabilities,
-			}
-
-			-- Ruby LSP (install: gem install solargraph)
-			vim.lsp.config.solargraph = {
-				capabilities = capabilities,
-			}
+			})
 
 			-- Lua LSP (install: brew install lua-language-server on macOS)
 			vim.lsp.config.lua_ls = {
-				capabilities = capabilities,
 				settings = {
 					Lua = {
 						diagnostics = { globals = { "vim" } },
@@ -318,32 +296,8 @@ require("lazy").setup({
 				},
 			}
 
-			-- HTML LSP (install: npm install -g vscode-langservers-extracted)
-			vim.lsp.config.html = {
-				capabilities = capabilities,
-			}
-
-			-- CSS LSP (install: npm install -g vscode-langservers-extracted)
-			vim.lsp.config.cssls = {
-				capabilities = capabilities,
-			}
-
-			-- JSON LSP (install: npm install -g vscode-langservers-extracted)
-			vim.lsp.config.jsonls = {
-				capabilities = capabilities,
-			}
-
-			-- TypeScript/JavaScript LSP (install: npm install -g typescript typescript-language-server)
-			vim.lsp.config.ts_ls = {
-				capabilities = capabilities,
-			}
-
-			vim.lsp.config.dockerls = {
-				capabilities = capabilities,
-			}
-
+			-- Helm LSP (install: brew install helm-ls)
 			vim.lsp.config.helm_ls = {
-				capabilities = capabilities,
 				filetypes = { "helm" },
 				settings = {
 					["helm-ls"] = {
@@ -355,22 +309,15 @@ require("lazy").setup({
 				},
 			}
 
-			-- Tailwind CSS LSP (install: npm install -g @tailwindcss/language-server)
-			vim.lsp.config.tailwindcss = {
-				capabilities = capabilities,
-			}
-
 			-- YAML LSP (install: npm install -g yaml-language-server)
 			vim.lsp.config.yamlls = {
-				capabilities = capabilities,
 				filetypes = { "yaml", "yaml.docker-compose", "yaml.gitlab" },
 				settings = {
 					yaml = {
 						schemas = {
 							["https://json.schemastore.org/github-workflow.json"] = "/.github/workflows/*",
 							["https://raw.githubusercontent.com/instrumenta/kubernetes-json-schema/master/v1.18.0-standalone-strict/all.json"] = "/*.k8s.yaml",
-							["https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json"] = "/docker-compose*.yml",
-							["https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json"] = "/docker-compose*.yaml",
+							["https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json"] = "/docker-compose*.{yml,yaml}",
 						},
 						format = { enable = true },
 						validate = true,
@@ -385,10 +332,34 @@ require("lazy").setup({
 				end,
 			}
 
-			-- Terraform LSP (install: brew install terraform-ls on macOS, or download from HashiCorp)
-			vim.lsp.config.terraformls = {
-				capabilities = capabilities,
-			}
+			-- Enable all LSP servers
+			-- Install instructions:
+			-- pyright: pip install pyright
+			-- gopls: go install golang.org/x/tools/gopls@latest
+			-- solargraph: gem install solargraph
+			-- lua_ls: brew install lua-language-server
+			-- html/cssls/jsonls: npm install -g vscode-langservers-extracted
+			-- ts_ls: npm install -g typescript typescript-language-server
+			-- dockerls: npm install -g dockerfile-language-server-nodejs
+			-- helm_ls: brew install helm-ls
+			-- tailwindcss: npm install -g @tailwindcss/language-server
+			-- yamlls: npm install -g yaml-language-server
+			-- terraformls: brew install terraform-ls
+			vim.lsp.enable({
+				"pyright",
+				"gopls",
+				"solargraph",
+				"lua_ls",
+				"html",
+				"cssls",
+				"jsonls",
+				"ts_ls",
+				"dockerls",
+				"helm_ls",
+				"tailwindcss",
+				"yamlls",
+				"terraformls",
+			})
 		end,
 	},
 	{
@@ -470,9 +441,9 @@ require("lazy").setup({
 				suggestion = { enabled = false },
 				panel = { enabled = false },
 				workspace_folders = {
-					"/Users/xcfw/dev/",
-					"/Users/xcfw/tools/",
-					"/Users/xcfw/.config/",
+					vim.fn.expand("~/dev/"),
+					vim.fn.expand("~/tools/"),
+					vim.fn.expand("~/.config/"),
 				},
 				copilot_node_command = "node",
 				filetypes = {
@@ -686,18 +657,12 @@ require("lazy").setup({
 					css = { "prettier" },
 					markdown = { "prettier" },
 					yaml = { "yamlfmt" },
-					dockerfile = { "hadolint" },
 					terraform = { "terraform_fmt" },
 					tf = { "terraform_fmt" },
 					hcl = { "terragrunt_hclfmt" },
-					helm = { "yamlfmt" },
+					-- helm: no formatter - yamlfmt breaks {{ .Values }} templates
 				},
 				formatters = {
-					hadolint = {
-						command = "hadolint",
-						args = { "--format", "json", "$FILENAME" },
-						stdin = false,
-					},
 					terragrunt_hclfmt = {
 						command = "terragrunt",
 						args = { "hclfmt", "--terragrunt-hclfmt-file", "$FILENAME" },

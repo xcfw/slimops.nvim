@@ -102,16 +102,63 @@ After running `:Lazy update`, test everything thoroughly before committing the u
 |-----|--------|
 | `;e` | Toggle file explorer |
 | `;j` | Find files (Telescope) |
-| `;k` | Live grep search |
+| `;J` | Find files (including hidden/ignored) |
+| `;k` | Live grep search with args |
+| `;f` | Live grep (including hidden/ignored) |
 | `;l` | Recent files |
+
+#### Advanced Live Grep Usage (`;k`)
+
+The live grep search supports ripgrep arguments directly in the prompt for powerful filtering:
+
+**Filter by file type (`-t`):**
+```
+your_search_term -t lua          # Search only in Lua files
+your_search_term -t py           # Search only in Python files
+your_search_term -t go           # Search only in Go files
+your_search_term -t js           # Search only in JavaScript files
+your_search_term -t ts           # Search only in TypeScript files
+your_search_term -t yaml         # Search only in YAML files
+your_search_term -t json         # Search only in JSON files
+your_search_term -t html         # Search only in HTML files
+your_search_term -t css          # Search only in CSS files
+your_search_term -t tf           # Search only in Terraform files
+your_search_term -t docker       # Search only in Dockerfiles
+your_search_term -t ruby         # Search only in Ruby files
+your_search_term -t markdown     # Search only in Markdown files
+```
+
+**Filter by glob pattern (`-g`):**
+```
+your_search_term -g "*.lua"              # Search in all .lua files
+your_search_term -g "lua/config/*.lua"   # Search in specific directory
+your_search_term -g "*.{lua,vim}"        # Search in multiple extensions
+```
+
+**Exclude files (`-g !pattern`):**
+```
+your_search_term -g "!test/*"            # Exclude test directories
+your_search_term -g "!*_test.go"         # Exclude Go test files
+your_search_term -g "!*.min.js"          # Exclude minified files
+```
+
+**Combine multiple filters:**
+```
+your_search_term -t lua -g "!test/*"     # Lua files excluding tests
+function -g "*.lua" -g "*.vim"           # Search in .lua and .vim files
+error -t py -g "!venv/*"                 # Python files excluding virtualenv
+```
+
+**Common file types available:** `ada`, `asm`, `awk`, `c`, `cpp`, `cs`, `css`, `dart`, `docker`, `go`, `html`, `java`, `js`, `json`, `kotlin`, `lua`, `markdown`, `php`, `py`, `ruby`, `sass`, `sh`, `sql`, `tf`, `toml`, `ts`, `xml`, `yaml`
+
+**Run `rg --type-list` in terminal to see all available file types.**
 
 ### Buffer/Tab Management
 | Key | Action |
 |-----|--------|
-| `<Tab>` / `<S-Tab>` | Next/previous buffer |
-| `;bd` | Close buffer |
-| `;bp` | Pin buffer |
-| `;1` - `;5` | Jump to buffer 1-5 |
+| `<Tab>` | Switch to alternate buffer |
+| `<S-Tab>` | Next buffer |
+| `<M-1>` - `<M-4>` | Jump to buffer 1-4 |
 
 ### LSP Features
 | Key | Action |
@@ -128,17 +175,79 @@ After running `:Lazy update`, test everything thoroughly before committing the u
 | Key | Action |
 |-----|--------|
 | `;gg` | Open Neogit |
-| `;gc` | Git commit |
-| `;hp` | Preview hunk |
-| `;hs` | Stage hunk |
 | `]c` / `[c` | Next/previous hunk |
+| `;gu` | Open GitHub URL in browser (normal/visual) |
 
 ### Terminal & AI
 | Key | Action |
 |-----|--------|
-| `;t` | Toggle terminal |
-| `;a` | **Claude Code integration** |
-| `<Ctrl-\>` | Toggle terminal (from terminal mode) |
+| `;s` | Toggle floating terminal |
+| `<C-\>` | Toggle all terminals |
+| `<M-\>` | Terminal picker |
+| `;a` | Claude default terminal (normal/visual) |
+| `;d` | Claude work terminal (normal/visual) |
+
+### Window Navigation
+| Key | Action |
+|-----|--------|
+| `<C-h>` / `<C-j>` / `<C-k>` / `<C-l>` | Navigate between windows |
+| `<M-j>` / `<M-k>` | Page down/up (buffer & terminal) |
+
+### Terminal Mode
+| Key | Action |
+|-----|--------|
+| `<C-\>` | Toggle all terminals |
+| `lj` | Exit to normal mode |
+| `<C-h>` | Move to left window |
+
+### Clipboard Operations
+| Key | Action |
+|-----|--------|
+| `<Space>y` | Copy relative file path |
+| `<Space>Y` | Copy absolute file path |
+| `<Space>u` | Copy filename only |
+| `<Space>p` | Paste from 'd' register (visual) |
+| `<Space>P` | Paste from 'd' register (normal) |
+| `dd` / `D` / `de` / `d$` / `C` | Delete to 'd' register (not clipboard) |
+
+### Diagnostics Navigation
+| Key | Action |
+|-----|--------|
+| `[d` / `]d` | Previous/next diagnostic |
+| `<Space>d` | Show diagnostic float |
+| `<Space>dl` | Diagnostics to location list |
+| `<Space>dq` | Diagnostics to quickfix |
+
+### Additional LSP Operations
+| Key | Action |
+|-----|--------|
+| `gD` | Go to declaration |
+| `gi` | Go to implementation |
+| `<Space>wa` | Add workspace folder |
+| `<Space>wr` | Remove workspace folder |
+| `<Space>wl` | List workspace folders |
+
+### Treesitter Text Selection
+| Key | Action |
+|-----|--------|
+| `;v` | Initialize selection |
+| `<CR>` | Increment selection |
+| `<BS>` | Decrement selection |
+
+### Comment & Surround (mini.nvim)
+| Key | Action |
+|-----|--------|
+| `gcc` | Toggle line comment |
+| `gbc` | Toggle block comment |
+| `gc{motion}` | Comment over motion |
+| `sa{motion}{char}` | Add surround |
+| `sd{char}` | Delete surround |
+| `sr{old}{new}` | Replace surround |
+
+### Alignment (mini.align)
+| Key | Action |
+|-----|--------|
+| `ga{motion}` | Align text (use in visual mode) |
 
 ## LSP Server Installation
 

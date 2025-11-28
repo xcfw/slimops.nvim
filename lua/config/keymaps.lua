@@ -117,22 +117,26 @@ for _, key in ipairs({'h', 'j', 'k', 'l'}) do
 end
 
 -- Terminal configurations using toggleterm
--- Floating terminal (;s and C-\)
-local floating_terminal = function()
-  local Terminal = require('toggleterm.terminal').Terminal
-  return Terminal:new({
-  direction = 'float',
-  float_opts = {
-    border = 'curved',
-    winblend = 0,
-    highlights = {
-      border = 'Normal',
-      background = 'Normal',
-    },
-    width = math.floor(vim.o.columns * 0.8),
-    height = math.floor(vim.o.lines * 0.8),
-  },
-  })
+-- Floating terminal (;s)
+local cached_floating_terminal = nil
+local function get_floating_terminal()
+  if not cached_floating_terminal then
+    local Terminal = require('toggleterm.terminal').Terminal
+    cached_floating_terminal = Terminal:new({
+      direction = 'float',
+      float_opts = {
+        border = 'curved',
+        winblend = 0,
+        highlights = {
+          border = 'Normal',
+          background = 'Normal',
+        },
+        width = math.floor(vim.o.columns * 0.8),
+        height = math.floor(vim.o.lines * 0.8),
+      },
+    })
+  end
+  return cached_floating_terminal
 end
 
 -- Terminal keymaps
@@ -140,7 +144,7 @@ map('t', '<C-\\>', '<cmd>ToggleTermToggleAll<cr>', opts)
 map('t', 'lj', '<C-\\><C-n>', opts)  -- Quick exit to normal mode
 map('t', '<C-h>', '<C-\\><C-n><C-w>h', opts)
 
-map('n', '<leader>s', function() floating_terminal():toggle() end, opts)
+map('n', '<leader>s', function() get_floating_terminal():toggle() end, opts)
 
 -- Claude terminals (copy path/selection to clipboard, then open terminal)
 map('n', '<leader>a', function() require('claude-prompt').open_default() end, opts)
