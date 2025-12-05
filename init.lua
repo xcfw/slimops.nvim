@@ -155,6 +155,19 @@ require("lazy").setup({
 					virt_text_pos = "eol",
 					delay = 500,
 				},
+				on_attach = function(bufnr)
+					local gs = package.loaded.gitsigns
+					local map = function(mode, l, r, desc)
+						vim.keymap.set(mode, l, r, { buffer = bufnr, desc = desc })
+					end
+
+					-- Navigation between hunks
+					map("n", "]h", gs.next_hunk, "Next hunk")
+					map("n", "[h", gs.prev_hunk, "Prev hunk")
+
+					-- Preview hunk
+					map("n", "<leader>hp", gs.preview_hunk, "Preview hunk")
+				end,
 			})
 		end,
 	},
@@ -458,9 +471,56 @@ require("lazy").setup({
 	-- Git integration
 	{
 		"NeogitOrg/neogit",
+		dependencies = { "nvim-lua/plenary.nvim", "sindrets/diffview.nvim" },
+		config = function()
+			require("neogit").setup({
+				integrations = { diffview = true },
+			})
+		end,
+	},
+
+	-- Diff viewer for merge conflicts (3-way merge)
+	{
+		"sindrets/diffview.nvim",
 		dependencies = { "nvim-lua/plenary.nvim" },
 		config = function()
-			require("neogit").setup()
+			local actions = require("diffview.actions")
+			require("diffview").setup({
+				view = {
+					merge_tool = {
+						layout = "diff3_horizontal", -- LOCAL | BASE | REMOTE (3 panes, synced scroll)
+						disable_diagnostics = true,
+						winbar_info = true,
+					},
+				},
+				hooks = {
+					view_opened = function()
+						-- Focus the middle pane (BASE) when merge view opens
+						vim.defer_fn(function()
+							vim.cmd("wincmd l") -- Move to middle pane
+						end, 50)
+					end,
+				},
+				keymaps = {
+					view = {
+						-- Conflict resolution (using actions API)
+						{ "n", "<space>co", actions.conflict_choose("ours"), { desc = "Choose OURS" } },
+						{ "n", "<space>ct", actions.conflict_choose("theirs"), { desc = "Choose THEIRS" } },
+						{ "n", "<space>cb", actions.conflict_choose("base"), { desc = "Choose BASE" } },
+						{ "n", "<space>ca", actions.conflict_choose("all"), { desc = "Choose ALL" } },
+						{ "n", "<space>cx", actions.conflict_choose("none"), { desc = "Delete conflict" } },
+						-- Close with ;q
+						{ "n", "<leader>q", "<cmd>DiffviewClose<CR>", { desc = "Close diffview" } },
+					},
+					file_panel = {
+						-- Tab to cycle through conflicted files
+						{ "n", "<Tab>", actions.select_next_entry, { desc = "Next file" } },
+						{ "n", "<S-Tab>", actions.select_prev_entry, { desc = "Prev file" } },
+						-- Close with ;q
+						{ "n", "<leader>q", "<cmd>DiffviewClose<CR>", { desc = "Close diffview" } },
+					},
+				},
+			})
 		end,
 	},
 
@@ -660,12 +720,15 @@ require("lazy").setup({
 					terraform = { "terraform_fmt" },
 					tf = { "terraform_fmt" },
 					hcl = { "terragrunt_hclfmt" },
+					sh = { "shfmt" },
+					bash = { "shfmt" },
+					zsh = { "shfmt" },
 					-- helm: no formatter - yamlfmt breaks {{ .Values }} templates
 				},
 				formatters = {
 					terragrunt_hclfmt = {
 						command = "terragrunt",
-						args = { "hclfmt", "--terragrunt-hclfmt-file", "$FILENAME" },
+						args = { "hcl", "fmt", "--file", "$FILENAME" },
 						stdin = false,
 					},
 				},

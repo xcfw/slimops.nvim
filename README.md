@@ -175,8 +175,33 @@ error -t py -g "!venv/*"                 # Python files excluding virtualenv
 | Key | Action |
 |-----|--------|
 | `;gg` | Open Neogit |
-| `]c` / `[c` | Next/previous hunk |
+| `]h` / `[h` | Next/previous hunk |
+| `;hp` | Preview hunk |
 | `;gu` | Open GitHub URL in browser (normal/visual) |
+
+### Merge Conflict Resolution (Diffview)
+
+When merge conflicts occur, use Diffview for a 3-way merge view:
+
+**Workflow:**
+1. Run `:DiffviewOpen` when you have merge conflicts
+2. Use `Tab` / `S-Tab` in file panel to switch between conflicted files
+3. Use `]x` / `[x` to jump between conflict markers
+4. Resolve using the keymaps below
+5. Press `;q` to close diffview when done
+
+| Key | Action |
+|-----|--------|
+| `;co` | Choose **ours** (LOCAL - your branch) |
+| `;ct` | Choose **theirs** (REMOTE - incoming branch) |
+| `;cb` | Choose **base** (common ancestor) |
+| `;ca` | Choose **all** (keep both versions) |
+| `;cx` | Choose **none** (delete conflict) |
+| `]x` / `[x` | Next/previous conflict marker |
+| `Tab` / `S-Tab` | Next/previous conflicted file (in file panel) |
+| `;q` | Close diffview |
+
+**Layout:** 3-pane horizontal view: LOCAL | BASE | REMOTE (all scroll in sync).
 
 ### Terminal & AI
 | Key | Action |
