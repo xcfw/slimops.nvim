@@ -451,6 +451,7 @@ require("lazy").setup({
 		event = "InsertEnter",
 		config = function()
 			require("copilot").setup({
+				copilot_model = "gpt-5.2",
 				suggestion = { enabled = false },
 				panel = { enabled = false },
 				workspace_folders = {
