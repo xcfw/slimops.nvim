@@ -182,4 +182,51 @@ map('n', '[c', '<cmd>Gitsigns prev_hunk<cr>', opts)
 -- sh - highlight current surround
 -- sn/sp - navigate to next/previous surround
 
--- nvim-lastplace - no keymaps needed (automatic cursor position restoration) 
+-- nvim-lastplace - no keymaps needed (automatic cursor position restoration)
+
+-- Base64 encode/decode for selected text
+local function get_visual_selection()
+  local _, ls, cs = unpack(vim.fn.getpos("'<"))
+  local _, le, ce = unpack(vim.fn.getpos("'>"))
+  local lines = vim.api.nvim_buf_get_text(0, ls - 1, cs - 1, le - 1, ce, {})
+  return table.concat(lines, "\n")
+end
+
+local function replace_visual_selection(new_text)
+  local _, ls, cs = unpack(vim.fn.getpos("'<"))
+  local _, le, ce = unpack(vim.fn.getpos("'>"))
+  vim.api.nvim_buf_set_text(0, ls - 1, cs - 1, le - 1, ce, vim.split(new_text, "\n"))
+end
+
+local function base64_encode()
+  local text = get_visual_selection()
+  local handle = io.popen("printf '%s' " .. vim.fn.shellescape(text) .. " | base64")
+  if handle then
+    local result = handle:read("*a"):gsub("%s+$", "")
+    handle:close()
+    replace_visual_selection(result)
+  end
+end
+
+local function base64_decode()
+  local text = get_visual_selection()
+  local handle = io.popen("printf '%s' " .. vim.fn.shellescape(text) .. " | base64 -d 2>/dev/null")
+  if handle then
+    local result = handle:read("*a")
+    handle:close()
+    if result ~= "" then
+      replace_visual_selection(result)
+    else
+      vim.notify("Invalid base64 input", vim.log.levels.ERROR)
+    end
+  end
+end
+
+map('v', '<leader>b', ':<C-u>lua require("config.keymaps").base64_encode()<CR>', { noremap = true, silent = true, desc = "Base64 encode" })
+map('v', '<leader>v', ':<C-u>lua require("config.keymaps").base64_decode()<CR>', { noremap = true, silent = true, desc = "Base64 decode" })
+
+-- Export functions for visual mode keymaps
+return {
+  base64_encode = base64_encode,
+  base64_decode = base64_decode,
+}

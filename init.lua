@@ -20,6 +20,10 @@ vim.opt.number = true
 vim.opt.relativenumber = true
 vim.opt.mouse = "a"
 vim.opt.termguicolors = true -- Essential for theme support
+
+-- Undercurl support for WezTerm/Kitty/iTerm2
+vim.cmd([[let &t_Cs = "\e[4:3m"]])  -- Start undercurl
+vim.cmd([[let &t_Ce = "\e[4:0m"]])  -- End undercurl
 vim.o.ignorecase = true
 vim.o.smartcase = true
 vim.o.inccommand = "split"
@@ -50,8 +54,12 @@ vim.opt.autoindent = true
 vim.opt.undofile = true
 vim.opt.undolevels = 999
 
--- Diagnostic signs (Neovim 0.10+ API)
+-- Always show sign column for diagnostics + gitsigns
+vim.opt.signcolumn = "yes"
+
+-- Diagnostic display (Neovim 0.10+ API)
 vim.diagnostic.config({
+	underline = true,
 	signs = {
 		text = {
 			[vim.diagnostic.severity.ERROR] = "",
@@ -59,7 +67,22 @@ vim.diagnostic.config({
 			[vim.diagnostic.severity.INFO] = "",
 			[vim.diagnostic.severity.HINT] = "",
 		},
+		-- Highlight line numbers for lines with diagnostics
+		numhl = {
+			[vim.diagnostic.severity.ERROR] = "DiagnosticSignError",
+			[vim.diagnostic.severity.WARN] = "DiagnosticSignWarn",
+		},
 	},
+})
+
+-- Wavy underlines for diagnostics (requires terminal with undercurl support: iTerm2, Kitty, WezTerm)
+vim.api.nvim_create_autocmd("ColorScheme", {
+	callback = function()
+		vim.api.nvim_set_hl(0, "DiagnosticUnderlineError", { undercurl = true, sp = "#f38ba8" })
+		vim.api.nvim_set_hl(0, "DiagnosticUnderlineWarn", { undercurl = true, sp = "#f9e2af" })
+		vim.api.nvim_set_hl(0, "DiagnosticUnderlineInfo", { undercurl = true, sp = "#89dceb" })
+		vim.api.nvim_set_hl(0, "DiagnosticUnderlineHint", { undercurl = true, sp = "#a6e3a1" })
+	end,
 })
 
 -- Helm and Go template filetype detection
@@ -250,12 +273,14 @@ require("lazy").setup({
 					theme = "auto", -- keep it automatic, don't change
 				},
 				sections = {
+					lualine_b = { "diagnostics" },
 					lualine_c = {
 						{
 							"filename",
 							path = 1, -- 0 = just filename, 1 = relative path, 2 = absolute path
 						},
 					},
+					lualine_x = { "encoding", "fileformat", "filetype" },
 				},
 			})
 		end,
@@ -383,6 +408,7 @@ require("lazy").setup({
 			"hrsh7th/cmp-nvim-lsp",
 			"L3MON4D3/LuaSnip",
 			"saadparwaiz1/cmp_luasnip",
+			"zbirenbaum/copilot.lua",
 			"zbirenbaum/copilot-cmp",
 		},
 		config = function()
@@ -394,25 +420,12 @@ require("lazy").setup({
 					end,
 				},
 				sources = cmp.config.sources({
+					{ name = "copilot" },
 					{ name = "nvim_lsp" },
 					{ name = "luasnip" },
-					{ name = "copilot" },
 					{ name = "buffer" },
 					{ name = "path" },
 				}),
-				formatting = {
-					format = function(entry, vim_item)
-						-- Replace source names with custom text/icons
-						vim_item.menu = ({
-							nvim_lsp = "[LSP]",
-							luasnip = "[Snip]",
-							copilot = "[CMP]",
-							buffer = "[Buf]",
-							path = "[Path]",
-						})[entry.source.name]
-						return vim_item
-					end,
-				},
 				mapping = cmp.mapping.preset.insert({
 					["<C-d>"] = cmp.mapping.scroll_docs(-4),
 					["<C-f>"] = cmp.mapping.scroll_docs(4),
@@ -441,7 +454,7 @@ require("lazy").setup({
 				},
 			})
 
-			-- Setup copilot-cmp after cmp
+			-- Setup copilot-cmp
 			require("copilot_cmp").setup()
 		end,
 	},
@@ -459,9 +472,8 @@ require("lazy").setup({
 					vim.fn.expand("~/tools/"),
 					vim.fn.expand("~/.config/"),
 				},
-				copilot_node_command = "node",
 				filetypes = {
-					gitcommit = true, -- Enable Copilot for git commit messages
+					gitcommit = true,
 					markdown = true,
 					yaml = true,
 				},
