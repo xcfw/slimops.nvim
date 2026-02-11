@@ -7,13 +7,26 @@ local opts = { noremap = true, silent = true }
 -- General keymaps
 map('n', '<leader>w', '<cmd>up<cr>', opts)
 map('n', '<leader>q', '<cmd>BufferClose<cr>', opts)
-map('n', '<leader><leader>', 'ZZ', opts)
+map('n', '<leader><leader>', 'ZQ', opts)
 map('n', '<Esc>', '<cmd>nohl<cr>', opts)
 
 -- Page navigation (works in both buffers and terminal)
 local page_nav_modes = { 'n', 't' }
 map(page_nav_modes, '<M-j>', '<C-f>', opts)  -- Page down
 map(page_nav_modes, '<M-k>', '<C-b>', opts)  -- Page up
+
+-- Precise scroll: PageDown/PageUp scroll viewport by N lines
+local page_scroll = 3
+local function scroll(key)
+  return function()
+    local keys = vim.api.nvim_replace_termcodes(page_scroll .. key, true, false, true)
+    vim.api.nvim_feedkeys(keys, 'n', false)
+  end
+end
+for _, m in ipairs({'n', 'v', 'i'}) do
+  map(m, '<PageDown>', scroll('<C-e>'), opts)
+  map(m, '<PageUp>',  scroll('<C-y>'), opts)
+end
 
 -- Copy file paths to system clipboard
 map('n', '<space>y', '<cmd>let @+ = expand("%")<cr>', opts)  -- Copy relative path
@@ -64,6 +77,7 @@ map('n', '<leader>J', function()
     })
 end, opts)
 map('n', '<leader>k', '<cmd>lua require("telescope").extensions.live_grep_args.live_grep_args()<cr>', opts)
+map('n', '<leader>K', '<cmd>lua require("telescope").extensions.live_grep_args.live_grep_args({vimgrep_arguments={"rg","--color=never","--no-heading","--with-filename","--line-number","--column","--smart-case","--hidden","--no-ignore","--unrestricted"}})<cr>', opts)
 map('n', '<leader>f', '<cmd>lua require("telescope.builtin").live_grep({additional_args={"--hidden","--no-ignore"}})<cr>', opts)
 map('n', '<leader>l', '<cmd>lua require("telescope.builtin").oldfiles({cwd_only=true})<cr>', opts)
 map('n', '<leader>gh', '<cmd>lua require("telescope.builtin").help_tags()<cr>', opts)
@@ -140,7 +154,7 @@ local function get_floating_terminal()
 end
 
 -- Terminal keymaps
-map('t', '<C-\\>', '<cmd>ToggleTermToggleAll<cr>', opts)
+-- map('t', '<C-\\>', '<cmd>ToggleTermToggleAll<cr>', opts)
 map('t', 'lj', '<C-\\><C-n>', opts)  -- Quick exit to normal mode
 map('t', '<C-h>', '<C-\\><C-n><C-w>h', opts)
 
