@@ -222,7 +222,7 @@ When merge conflicts occur, use Diffview for a 3-way merge view:
 | Key | Action |
 |-----|--------|
 | `<C-\>` | Toggle all terminals |
-| `lj` | Exit to normal mode |
+| `;l` | Exit to normal mode |
 | `<C-h>` | Move to left window |
 
 ### Clipboard Operations

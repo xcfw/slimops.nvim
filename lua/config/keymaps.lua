@@ -155,7 +155,7 @@ end
 
 -- Terminal keymaps
 -- map('t', '<C-\\>', '<cmd>ToggleTermToggleAll<cr>', opts)
-map('t', 'lj', '<C-\\><C-n>', opts)  -- Quick exit to normal mode
+map('t', ';l', '<C-\\><C-n>', opts)  -- Quick exit to normal mode
 map('t', '<C-h>', '<C-\\><C-n><C-w>h', opts)
 
 map('n', '<leader>s', function() get_floating_terminal():toggle() end, opts)
