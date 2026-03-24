@@ -24,10 +24,10 @@ vim.opt.termguicolors = true -- Essential for theme support
 -- Undercurl support for WezTerm/Kitty/iTerm2
 vim.cmd([[let &t_Cs = "\e[4:3m"]])  -- Start undercurl
 vim.cmd([[let &t_Ce = "\e[4:0m"]])  -- End undercurl
-vim.o.ignorecase = true
-vim.o.smartcase = true
-vim.o.inccommand = "split"
-vim.o.cursorline = true
+vim.opt.ignorecase = true
+vim.opt.smartcase = true
+vim.opt.inccommand = "split"
+vim.opt.cursorline = true
 vim.g.python3_host_prog = vim.fn.expand("~/.nvim-venv/bin/python")
 
 -- text width
@@ -39,7 +39,7 @@ vim.opt.formatoptions = "tcqjnl" -- t=autowrap text, c=autowrap comments, q=allo
 
 -- to reduce startup time
 vim.schedule(function()
-	vim.o.clipboard = "unnamedplus"
+	vim.opt.clipboard = "unnamedplus"
 end)
 
 -- Built-in auto-reload when files change on disk (replaces hotreload plugin)
@@ -585,55 +585,45 @@ require("lazy").setup({
 	{
 		"numToStr/Comment.nvim",
 		lazy = false,
-		config = function()
-			require("Comment").setup()
-		end,
+		opts = {},
 	},
 
 	-- Surround operations using mini.nvim
 	{
 		"echasnovski/mini.surround",
 		version = "*",
-		config = function()
-			require("mini.surround").setup()
-		end,
+		opts = {},
 	},
 
 	-- Auto-pairing brackets, quotes, etc.
 	{
 		"echasnovski/mini.pairs",
 		version = "*",
-		config = function()
-			require("mini.pairs").setup({
-				mappings = {
-					["`"] = { action = "closeopen", pair = "``", neigh_pattern = "[^`\\].", register = { cr = false } },
-				},
-			})
-		end,
+		opts = {
+			mappings = {
+				["`"] = { action = "closeopen", pair = "``", neigh_pattern = "[^`\\].", register = { cr = false } },
+			},
+		},
 	},
 
 	-- Smooth movement animations
 	{
 		"echasnovski/mini.animate",
 		version = "*",
-		config = function()
-			require("mini.animate").setup({
-				scroll = {
-					timing = function(_, n)
-						return math.min(250 / n, 10)
-					end,
-				},
-			})
-		end,
+		opts = {
+			scroll = {
+				timing = function(_, n)
+					return math.min(250 / n, 10)
+				end,
+			},
+		},
 	},
 
 	-- Smart text alignment
 	{
 		"echasnovski/mini.align",
 		version = "*",
-		config = function()
-			require("mini.align").setup()
-		end,
+		opts = {},
 	},
 
 	-- Remember cursor position in files
