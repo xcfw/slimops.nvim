@@ -55,8 +55,7 @@ for i = 1, 4 do
 end
 
 -- Telescope keymaps
-map('n', '<leader>j', '<cmd>lua require("telescope.builtin").find_files()<cr>', opts)
--- map('n', '<leader>J', '<cmd>lua require("telescope.builtin").find_files({find_command={"rg","--no-ignore","--hidden","--files"}})<cr>', opts)
+map('n', '<leader>j', function() require("telescope.builtin").find_files() end, opts)
 map('n', '<leader>J', function()
     require("telescope.builtin").find_files({
         find_command = {
@@ -76,29 +75,37 @@ map('n', '<leader>J', function()
         }
     })
 end, opts)
-map('n', '<leader>k', '<cmd>lua require("telescope").extensions.live_grep_args.live_grep_args()<cr>', opts)
-map('n', '<leader>K', '<cmd>lua require("telescope").extensions.live_grep_args.live_grep_args({vimgrep_arguments={"rg","--color=never","--no-heading","--with-filename","--line-number","--column","--smart-case","--hidden","--no-ignore","--unrestricted"}})<cr>', opts)
-map('n', '<leader>f', '<cmd>lua require("telescope.builtin").live_grep({additional_args={"--hidden","--no-ignore"}})<cr>', opts)
-map('n', '<leader>l', '<cmd>lua require("telescope.builtin").oldfiles({cwd_only=true})<cr>', opts)
-map('n', '<leader>gh', '<cmd>lua require("telescope.builtin").help_tags()<cr>', opts)
-map('n', '<leader>gs', '<cmd>lua require("telescope.builtin").lsp_document_symbols()<cr>', opts)
-map('n', '<leader>gr', '<cmd>lua require("telescope.builtin").lsp_references()<cr>', opts)
+map('n', '<leader>k', function() require("telescope").extensions.live_grep_args.live_grep_args() end, opts)
+map('n', '<leader>K', function()
+  require("telescope").extensions.live_grep_args.live_grep_args({
+    vimgrep_arguments = {
+      "rg", "--color=never", "--no-heading", "--with-filename",
+      "--line-number", "--column", "--smart-case",
+      "--hidden", "--no-ignore", "--unrestricted",
+    },
+  })
+end, opts)
+map('n', '<leader>f', function() require("telescope.builtin").live_grep({ additional_args = { "--hidden", "--no-ignore" } }) end, opts)
+map('n', '<leader>l', function() require("telescope.builtin").oldfiles({ cwd_only = true }) end, opts)
+map('n', '<leader>gh', function() require("telescope.builtin").help_tags() end, opts)
+map('n', '<leader>gs', function() require("telescope.builtin").lsp_document_symbols() end, opts)
+map('n', '<leader>gr', function() require("telescope.builtin").lsp_references() end, opts)
 
 -- Neogit keymaps
 map('n', '<leader>gg', '<cmd>Neogit<cr>', opts)
 
 -- LSP keymaps
 -- Standard go-to keymaps (no leader)
-map('n', 'gd', '<cmd>lua vim.lsp.buf.definition()<cr>', opts)
-map('n', 'gD', '<cmd>lua vim.lsp.buf.declaration()<cr>', opts)
-map('n', 'gi', '<cmd>lua vim.lsp.buf.implementation()<cr>', opts)
-map('n', 'gr', '<cmd>lua vim.lsp.buf.references()<cr>', opts)
-map('n', 'K', '<cmd>lua vim.lsp.buf.hover()<cr>', opts)
+map('n', 'gd', vim.lsp.buf.definition, opts)
+map('n', 'gD', vim.lsp.buf.declaration, opts)
+map('n', 'gi', vim.lsp.buf.implementation, opts)
+map('n', 'gr', vim.lsp.buf.references, opts)
+map('n', 'K', vim.lsp.buf.hover, opts)
 
 -- Space as LSP "leader" - organized by function
 -- Code actions and refactoring
-map('n', '<Space>ca', '<cmd>lua vim.lsp.buf.code_action()<cr>', opts)
-map('n', '<Space>rn', '<cmd>lua vim.lsp.buf.rename()<cr>', opts)
+map('n', '<Space>ca', vim.lsp.buf.code_action, opts)
+map('n', '<Space>rn', vim.lsp.buf.rename, opts)
 map('n', '<Space>f', function()
   require("conform").format({
     lsp_fallback = true,
@@ -107,18 +114,18 @@ map('n', '<Space>f', function()
 end, opts)
 
 -- Diagnostics
-map('n', '<Space>d', '<cmd>lua vim.diagnostic.open_float()<cr>', opts)
-map('n', '<Space>dl', '<cmd>lua vim.diagnostic.setloclist()<cr>', opts)
-map('n', '<Space>dq', '<cmd>lua vim.diagnostic.setqflist()<cr>', opts)
+map('n', '<Space>d', vim.diagnostic.open_float, opts)
+map('n', '<Space>dl', vim.diagnostic.setloclist, opts)
+map('n', '<Space>dq', vim.diagnostic.setqflist, opts)
 
 -- Navigation (keep bracket style for consistency)
-map('n', '[d', '<cmd>lua vim.diagnostic.goto_prev()<cr>', opts)
-map('n', ']d', '<cmd>lua vim.diagnostic.goto_next()<cr>', opts)
+map('n', '[d', vim.diagnostic.goto_prev, opts)
+map('n', ']d', vim.diagnostic.goto_next, opts)
 
 -- Workspace operations
-map('n', '<Space>wa', '<cmd>lua vim.lsp.buf.add_workspace_folder()<cr>', opts)
-map('n', '<Space>wr', '<cmd>lua vim.lsp.buf.remove_workspace_folder()<cr>', opts)
-map('n', '<Space>wl', '<cmd>lua print(vim.inspect(vim.lsp.buf.list_workspace_folders()))<cr>', opts)
+map('n', '<Space>wa', vim.lsp.buf.add_workspace_folder, opts)
+map('n', '<Space>wr', vim.lsp.buf.remove_workspace_folder, opts)
+map('n', '<Space>wl', function() print(vim.inspect(vim.lsp.buf.list_workspace_folders())) end, opts)
 
 -- Copilot integration via nvim-cmp
 -- Tab/S-Tab for navigating completions (configured in init.lua)
@@ -154,7 +161,6 @@ local function get_floating_terminal()
 end
 
 -- Terminal keymaps
--- map('t', '<C-\\>', '<cmd>ToggleTermToggleAll<cr>', opts)
 map('t', ';l', '<C-\\><C-n>', opts)  -- Quick exit to normal mode
 map('t', '<C-h>', '<C-\\><C-n><C-w>h', opts)
 
@@ -179,9 +185,7 @@ map('n', '<M-\\>', function()
   })
 end, opts)
 
--- Gitsigns keymaps
-map('n', ']c', '<cmd>Gitsigns next_hunk<cr>', opts)
-map('n', '[c', '<cmd>Gitsigns prev_hunk<cr>', opts)
+-- Gitsigns hunk keymaps are defined in gitsigns on_attach (init.lua) for proper buffer-scoping
 
 -- Comment.nvim keymaps
 -- gcc - toggle line comment
