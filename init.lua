@@ -42,6 +42,16 @@ vim.schedule(function()
 	vim.o.clipboard = "unnamedplus"
 end)
 
+-- Built-in auto-reload when files change on disk (replaces hotreload plugin)
+vim.opt.autoread = true
+vim.api.nvim_create_autocmd({ "FocusGained", "BufEnter", "CursorHold", "CursorHoldI" }, {
+	callback = function()
+		if vim.fn.mode() ~= "c" then
+			vim.cmd("checktime")
+		end
+	end,
+})
+
 -- Indentation settings
 vim.opt.tabstop = 2
 vim.opt.shiftwidth = 2
@@ -702,15 +712,6 @@ require("lazy").setup({
 			"nvim-tree/nvim-web-devicons", -- or 'echasnovski/mini.nvim'
 		},
 		opts = {},
-	},
-
-	-- Auto-reload buffers when files change on disk (for Claude Code)
-	{
-		"diogo464/hotreload.nvim",
-		event = "VeryLazy",
-		opts = {
-			interval = 1000, -- Check every 500ms
-		},
 	},
 
 	-- Code formatting
