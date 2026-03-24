@@ -40,6 +40,7 @@ This configuration follows a straightforward philosophy:
 - Claude Code integration
 - Markdown preview
 - Comment toggling and text manipulation
+- Native Neovim auto-reload (`autoread` + `:checktime` autocmd), no plugin required
 
 ## Installation
 
