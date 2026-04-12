@@ -4,6 +4,20 @@
 local map = vim.keymap.set
 local opts = { noremap = true, silent = true }
 
+-- Wrapped line navigation (respects count: 5j still jumps 5 real lines)
+map('n', 'j', "v:count == 0 ? 'gj' : 'j'", { expr = true, noremap = true, silent = true })
+map('n', 'k', "v:count == 0 ? 'gk' : 'k'", { expr = true, noremap = true, silent = true })
+
+-- Y yanks to end of line (consistent with D, C)
+map('n', 'Y', 'y$', opts)
+
+-- Toggle virtual diagnostics + inlay hints
+map('n', '<BS>', function()
+  local cfg = vim.diagnostic.config()
+  vim.diagnostic.config({ virtual_text = not cfg.virtual_text })
+  vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())
+end, { noremap = true, silent = true, desc = "Toggle diagnostics/inlay hints" })
+
 -- General keymaps
 map('n', '<leader>w', '<cmd>up<cr>', opts)
 map('n', '<leader>q', '<cmd>BufferClose<cr>', opts)
@@ -45,7 +59,8 @@ map('x', '<space>p', '"dp', opts)
 map('n', '<space>P', '"dP', opts)
 
 -- nvim-tree keymaps
-map('n', '<leader>e', '<cmd>NvimTreeToggle<cr>', opts)
+map('n', '<leader>E', '<cmd>NvimTreeToggle<cr>', opts)
+map('n', '<leader>e', '<cmd>lua if not require("mini.files").close() then require("mini.files").open() end<cr>', opts)
 
 -- Barbar keymaps (tabs/buffers)
 map('n', '<Tab>', '<C-^>', opts)
@@ -79,6 +94,7 @@ end, opts)
 map('n', '<leader>k', '<cmd>lua require("telescope").extensions.live_grep_args.live_grep_args()<cr>', opts)
 map('n', '<leader>K', '<cmd>lua require("telescope").extensions.live_grep_args.live_grep_args({vimgrep_arguments={"rg","--color=never","--no-heading","--with-filename","--line-number","--column","--smart-case","--hidden","--no-ignore","--unrestricted"}})<cr>', opts)
 map('n', '<leader>f', '<cmd>lua require("telescope.builtin").live_grep({additional_args={"--hidden","--no-ignore"}})<cr>', opts)
+
 map('n', '<leader>l', '<cmd>lua require("telescope.builtin").oldfiles({cwd_only=true})<cr>', opts)
 map('n', '<leader>gh', '<cmd>lua require("telescope.builtin").help_tags()<cr>', opts)
 map('n', '<leader>gs', '<cmd>lua require("telescope.builtin").lsp_document_symbols()<cr>', opts)
@@ -125,10 +141,11 @@ map('n', '<Space>wl', '<cmd>lua print(vim.inspect(vim.lsp.buf.list_workspace_fol
 -- Copilot suggestions appear as completion items through copilot-cmp
 -- Use Enter to accept, Tab/S-Tab to navigate suggestions
 
--- Window navigation
-for _, key in ipairs({'h', 'j', 'k', 'l'}) do
-  map('n', '<C-' .. key .. '>', '<C-w>' .. key, opts)
-end
+-- Window/tmux navigation in terminal mode (vim-tmux-navigator handles normal mode)
+map('t', '<C-h>', '<cmd>TmuxNavigateLeft<cr>', opts)
+map('t', '<C-j>', '<cmd>TmuxNavigateDown<cr>', opts)
+map('t', '<C-k>', '<cmd>TmuxNavigateUp<cr>', opts)
+map('t', '<C-l>', '<cmd>TmuxNavigateRight<cr>', opts)
 
 -- Terminal configurations using toggleterm
 -- Floating terminal (;s)
@@ -156,8 +173,6 @@ end
 -- Terminal keymaps
 -- map('t', '<C-\\>', '<cmd>ToggleTermToggleAll<cr>', opts)
 map('t', ';l', '<C-\\><C-n>', opts)  -- Quick exit to normal mode
-map('t', '<C-h>', '<C-\\><C-n><C-w>h', opts)
-
 map('n', '<leader>s', function() get_floating_terminal():toggle() end, opts)
 
 -- Claude terminals (copy path/selection to clipboard, then open terminal)
@@ -165,6 +180,7 @@ map('n', '<leader>a', function() require('claude-prompt').open_default() end, op
 map('v', '<leader>a', function() require('claude-prompt').open_default_visual() end, opts)
 map('n', '<leader>d', function() require('claude-prompt').open_work() end, opts)
 map('v', '<leader>d', function() require('claude-prompt').open_work_visual() end, opts)
+map('n', '<leader>r', function() require('claude-prompt').open_code() end, opts)
 
 -- Terminal picker (compact dialog, normal mode for hjkl navigation)
 map('n', '<M-\\>', function()
@@ -197,6 +213,16 @@ map('n', '[c', '<cmd>Gitsigns prev_hunk<cr>', opts)
 -- sn/sp - navigate to next/previous surround
 
 -- nvim-lastplace - no keymaps needed (automatic cursor position restoration)
+
+-- mini.move: move line/selection with arrow keys
+map('n', '<Down>',  function() require('mini.move').move_line('down') end, opts)
+map('n', '<Up>',    function() require('mini.move').move_line('up') end, opts)
+map('n', '<Left>',  function() require('mini.move').move_line('left') end, opts)
+map('n', '<Right>', function() require('mini.move').move_line('right') end, opts)
+map('v', '<Down>',  function() require('mini.move').move_selection('down') end, opts)
+map('v', '<Up>',    function() require('mini.move').move_selection('up') end, opts)
+map('v', '<Left>',  function() require('mini.move').move_selection('left') end, opts)
+map('v', '<Right>', function() require('mini.move').move_selection('right') end, opts)
 
 -- Base64 encode/decode for selected text
 local function get_visual_selection()

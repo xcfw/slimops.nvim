@@ -68,6 +68,7 @@ vim.opt.undolevels = 999
 vim.opt.signcolumn = "yes"
 
 -- Diagnostic display (Neovim 0.10+ API)
+vim.o.cmdheight = 0
 vim.diagnostic.config({
 	underline = true,
 	signs = {
@@ -95,6 +96,11 @@ vim.api.nvim_create_autocmd("ColorScheme", {
 	end,
 })
 
+-- Flash yanked region briefly
+vim.api.nvim_create_autocmd("TextYankPost", {
+	callback = function() vim.highlight.on_yank() end,
+})
+
 -- Helm and Go template filetype detection
 vim.filetype.add({
 	extension = {
@@ -113,12 +119,35 @@ require("config.keymaps")
 
 -- Set up plugins
 require("lazy").setup({
-	-- Catppuccin theme
+	-- Solarized theme (original Ethan Schoonover palette)
+	{
+		"ishan9299/nvim-solarized-lua",
+		lazy = false,
+		priority = 1000,
+		config = function()
+			vim.cmd("colorscheme solarized")
+		end,
+	},
+
+	-- Auto dark/light mode following macOS appearance
+	{
+		"f-person/auto-dark-mode.nvim",
+		priority = 999,
+		opts = {
+			set_dark_mode = function()
+				vim.o.background = "dark"
+			end,
+			set_light_mode = function()
+				vim.o.background = "light"
+			end,
+		},
+	},
+
+	-- Catppuccin theme (available but inactive)
 	{
 		"catppuccin/nvim",
 		name = "catppuccin",
-		lazy = false,
-		priority = 1000,
+		lazy = true,
 		config = function()
 			require("catppuccin").setup({
 				flavour = "macchiato", -- latte, frappe, macchiato, mocha
@@ -127,7 +156,6 @@ require("lazy").setup({
 					nvim_tree = true, -- Using nvim-tree not neo-tree
 				},
 			})
-			vim.cmd("colorscheme catppuccin")
 		end,
 	},
 
@@ -137,7 +165,7 @@ require("lazy").setup({
 		version = "*",
 		lazy = false,
 		dependencies = {
-			"nvim-tree/nvim-web-devicons",
+			"echasnovski/mini.icons",
 		},
 		config = function()
 			require("nvim-tree").setup({
@@ -273,7 +301,7 @@ require("lazy").setup({
 	{
 		"nvim-lualine/lualine.nvim",
 		dependencies = {
-			"nvim-tree/nvim-web-devicons",
+			"echasnovski/mini.icons",
 			"catppuccin/nvim", -- Add explicit dependency
 		},
 		config = function()
@@ -298,7 +326,7 @@ require("lazy").setup({
 	-- Tab bar
 	{
 		"romgrk/barbar.nvim",
-		dependencies = { "nvim-tree/nvim-web-devicons" },
+		dependencies = { "echasnovski/mini.icons" },
 		config = function()
 			require("barbar").setup({
 				animation = false,
@@ -474,7 +502,7 @@ require("lazy").setup({
 		event = "InsertEnter",
 		config = function()
 			require("copilot").setup({
-				copilot_model = "gpt-5.2",
+				copilot_model = "gpt-5.4-mini",
 				suggestion = { enabled = false },
 				panel = { enabled = false },
 				workspace_folders = {
@@ -501,7 +529,7 @@ require("lazy").setup({
 			})
 		end,
 	},
-
+  
 	-- Diff viewer for merge conflicts (3-way merge)
 	{
 		"sindrets/diffview.nvim",
@@ -590,6 +618,18 @@ require("lazy").setup({
 		end,
 	},
 
+  -- Mini file-manager
+
+  {
+    "echasnovski/mini.files",
+    version = "*",
+    dependencies = { "echasnovski/mini.icons" },
+    config = function()
+      require("mini.files").setup({
+      })
+    end,
+  },
+
 	-- Surround operations using mini.nvim
 	{
 		"echasnovski/mini.surround",
@@ -633,6 +673,20 @@ require("lazy").setup({
 		version = "*",
 		config = function()
 			require("mini.align").setup()
+		end,
+	},
+
+	-- Move lines/selections with arrow keys (keymaps in keymaps.lua)
+	{
+		"echasnovski/mini.move",
+		version = "*",
+		config = function()
+			require("mini.move").setup({
+				mappings = {
+					left = '', right = '', down = '', up = '',
+					line_left = '', line_right = '', line_down = '', line_up = '',
+				},
+			})
 		end,
 	},
 
@@ -684,10 +738,21 @@ require("lazy").setup({
 
 	-- Additional plugins
 	{
-		"nvim-tree/nvim-web-devicons",
-		lazy = false, -- Force immediate loading
+		"echasnovski/mini.icons",
+		version = "*",
+		lazy = false,
+		config = function()
+			require("mini.icons").setup()
+			MiniIcons.mock_nvim_web_devicons()
+		end,
 	},
 	{ "nvim-lua/plenary.nvim" },
+
+	-- Seamless navigation between nvim splits and tmux panes
+	{
+		"christoomey/vim-tmux-navigator",
+		lazy = false,
+	},
 
 	-- Claude terminal integration
 	{
@@ -709,7 +774,7 @@ require("lazy").setup({
 		"MeanderingProgrammer/render-markdown.nvim",
 		dependencies = {
 			"nvim-treesitter/nvim-treesitter",
-			"nvim-tree/nvim-web-devicons", -- or 'echasnovski/mini.nvim'
+			"echasnovski/mini.icons",
 		},
 		opts = {},
 	},
@@ -736,7 +801,7 @@ require("lazy").setup({
 					hcl = { "terragrunt_hclfmt" },
 					sh = { "shfmt" },
 					bash = { "shfmt" },
-					zsh = { "shfmt" },
+					zsh = { "beautysh" },
 					-- helm: no formatter - yamlfmt breaks {{ .Values }} templates
 				},
 				formatters = {
@@ -752,6 +817,11 @@ require("lazy").setup({
 		end,
 	},
 })
+
+-- clipboard copy nvim messages
+vim.api.nvim_create_user_command('Mc', function()
+  vim.fn.system('pbcopy', vim.fn.execute('messages'))
+end, {})
 
 -- Add compatibility between nvim-tree and barbar
 local nvim_tree_events = require("nvim-tree.events")
