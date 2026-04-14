@@ -21,9 +21,6 @@ vim.opt.relativenumber = true
 vim.opt.mouse = "a"
 vim.opt.termguicolors = true -- Essential for theme support
 
--- Undercurl support for WezTerm/Kitty/iTerm2
-vim.cmd([[let &t_Cs = "\e[4:3m"]])  -- Start undercurl
-vim.cmd([[let &t_Ce = "\e[4:0m"]])  -- End undercurl
 vim.o.ignorecase = true
 vim.o.smartcase = true
 vim.o.inccommand = "split"
@@ -86,7 +83,7 @@ vim.diagnostic.config({
 	},
 })
 
--- Wavy underlines for diagnostics (requires terminal with undercurl support: iTerm2, Kitty, WezTerm)
+-- Wavy underlines for diagnostics (requires terminal with undercurl support)
 vim.api.nvim_create_autocmd("ColorScheme", {
 	callback = function()
 		vim.api.nvim_set_hl(0, "DiagnosticUnderlineError", { undercurl = true, sp = "#f38ba8" })
@@ -98,7 +95,9 @@ vim.api.nvim_create_autocmd("ColorScheme", {
 
 -- Flash yanked region briefly
 vim.api.nvim_create_autocmd("TextYankPost", {
-	callback = function() vim.highlight.on_yank() end,
+	callback = function()
+		vim.highlight.on_yank()
+	end,
 })
 
 -- Helm and Go template filetype detection
@@ -141,60 +140,6 @@ require("lazy").setup({
 				vim.o.background = "light"
 			end,
 		},
-	},
-
-	-- Catppuccin theme (available but inactive)
-	{
-		"catppuccin/nvim",
-		name = "catppuccin",
-		lazy = true,
-		config = function()
-			require("catppuccin").setup({
-				flavour = "macchiato", -- latte, frappe, macchiato, mocha
-				integrations = {
-					barbar = true, -- Disabled by default, must enable
-					nvim_tree = true, -- Using nvim-tree not neo-tree
-				},
-			})
-		end,
-	},
-
-	-- Modern file explorer
-	{
-		"nvim-tree/nvim-tree.lua",
-		version = "*",
-		lazy = false,
-		dependencies = {
-			"echasnovski/mini.icons",
-		},
-		config = function()
-			require("nvim-tree").setup({
-				sort_by = "case_sensitive",
-				renderer = {
-					group_empty = true,
-					highlight_git = true,
-				},
-				git = {
-					ignore = false,
-				},
-				diagnostics = {
-					enable = false, -- Disabled to avoid sign placement conflicts
-				},
-				actions = {
-					open_file = {
-						window_picker = {
-							enable = false,
-						},
-					},
-					remove_file = {
-						close_window = true,
-					},
-				},
-				update_focused_file = {
-					enable = true,
-				},
-			})
-		end,
 	},
 
 	-- Git signs in the gutter
@@ -256,6 +201,15 @@ require("lazy").setup({
 		ft = { "markdown" },
 	},
 
+  -- whichkey hints for keymaps
+  {
+    "folke/which-key.nvim",
+      event = "VeryLazy",
+    init = function()
+      vim.o.timeout = true
+      vim.o.timeoutlen = 300
+    end,
+  },
 	-- Syntax highlighting
 	{
 		"nvim-treesitter/nvim-treesitter",
@@ -302,7 +256,6 @@ require("lazy").setup({
 		"nvim-lualine/lualine.nvim",
 		dependencies = {
 			"echasnovski/mini.icons",
-			"catppuccin/nvim", -- Add explicit dependency
 		},
 		config = function()
 			require("lualine").setup({
@@ -447,7 +400,6 @@ require("lazy").setup({
 			"L3MON4D3/LuaSnip",
 			"saadparwaiz1/cmp_luasnip",
 			"zbirenbaum/copilot.lua",
-			"zbirenbaum/copilot-cmp",
 		},
 		config = function()
 			local cmp = require("cmp")
@@ -458,7 +410,6 @@ require("lazy").setup({
 					end,
 				},
 				sources = cmp.config.sources({
-					{ name = "copilot" },
 					{ name = "nvim_lsp" },
 					{ name = "luasnip" },
 					{ name = "buffer" },
@@ -470,10 +421,13 @@ require("lazy").setup({
 					["<C-Space>"] = cmp.mapping.complete(),
 					["<CR>"] = cmp.mapping.confirm({
 						behavior = cmp.ConfirmBehavior.Replace,
-						select = true,
+						select = false,
 					}),
 					["<Tab>"] = cmp.mapping(function(fallback)
-						if cmp.visible() then
+						local copilot = require("copilot.suggestion")
+						if copilot.is_visible() then
+							copilot.accept()
+						elseif cmp.visible() then
 							cmp.select_next_item()
 						else
 							fallback()
@@ -488,12 +442,9 @@ require("lazy").setup({
 					end, { "i", "s" }),
 				}),
 				experimental = {
-					ghost_text = true,
+					ghost_text = false,
 				},
 			})
-
-			-- Setup copilot-cmp
-			require("copilot_cmp").setup()
 		end,
 	},
 	{
@@ -502,13 +453,18 @@ require("lazy").setup({
 		event = "InsertEnter",
 		config = function()
 			require("copilot").setup({
-				copilot_model = "gpt-5.4-mini",
-				suggestion = { enabled = false },
+				copilot_model = "gpt-41-copilot",
+				suggestion = {
+					enabled = true,
+					auto_trigger = true,
+					keymap = { accept = false },
+				},
 				panel = { enabled = false },
 				workspace_folders = {
 					vim.fn.expand("~/dev/"),
 					vim.fn.expand("~/tools/"),
 					vim.fn.expand("~/.config/"),
+					vim.fn.expand("~/.zsh*"),
 				},
 				filetypes = {
 					gitcommit = true,
@@ -529,7 +485,7 @@ require("lazy").setup({
 			})
 		end,
 	},
-  
+
 	-- Diff viewer for merge conflicts (3-way merge)
 	{
 		"sindrets/diffview.nvim",
@@ -582,14 +538,9 @@ require("lazy").setup({
 			local gitlinker = require("gitlinker")
 			gitlinker.setup()
 			-- Set up custom keymaps that open in browser
-			vim.keymap.set(
-				{ "n", "v" },
-				"<leader>gu",
-				function()
-					gitlinker.link({ action = vim.ui.open })
-				end,
-				{ desc = "Open GitHub URL in browser" }
-			)
+			vim.keymap.set({ "n", "v" }, "<leader>gu", function()
+				gitlinker.link({ action = vim.ui.open })
+			end, { desc = "Open GitHub URL in browser" })
 		end,
 	},
 
@@ -600,6 +551,10 @@ require("lazy").setup({
 			{
 				"nvim-telescope/telescope-live-grep-args.nvim",
 				version = "^1.0.0",
+			},
+			{
+				"nvim-telescope/telescope-fzf-native.nvim",
+				build = "make",
 			},
 		},
 		config = function()
@@ -618,17 +573,18 @@ require("lazy").setup({
 		end,
 	},
 
-  -- Mini file-manager
+	-- Mini file-manager
 
-  {
-    "echasnovski/mini.files",
-    version = "*",
-    dependencies = { "echasnovski/mini.icons" },
-    config = function()
-      require("mini.files").setup({
-      })
-    end,
-  },
+	{
+		"echasnovski/mini.files",
+		version = "*",
+		dependencies = { "echasnovski/mini.icons" },
+		config = function()
+			require("mini.files").setup({
+				mappings = { synchronize = "`", close = ";;", go_in_plus = "l", go_in = "L" },
+			})
+		end,
+	},
 
 	-- Surround operations using mini.nvim
 	{
@@ -683,8 +639,14 @@ require("lazy").setup({
 		config = function()
 			require("mini.move").setup({
 				mappings = {
-					left = '', right = '', down = '', up = '',
-					line_left = '', line_right = '', line_down = '', line_up = '',
+					left = "",
+					right = "",
+					down = "",
+					up = "",
+					line_left = "",
+					line_right = "",
+					line_down = "",
+					line_up = "",
 				},
 			})
 		end,
@@ -819,26 +781,8 @@ require("lazy").setup({
 })
 
 -- clipboard copy nvim messages
-vim.api.nvim_create_user_command('Mc', function()
-  vim.fn.system('pbcopy', vim.fn.execute('messages'))
+vim.api.nvim_create_user_command("Mc", function()
+	vim.fn.system("pbcopy", vim.fn.execute("messages"))
 end, {})
 
--- Add compatibility between nvim-tree and barbar
-local nvim_tree_events = require("nvim-tree.events")
 local bufferline_api = require("bufferline.api")
-
-local function get_tree_size()
-	return require("nvim-tree.view").View.width
-end
-
-nvim_tree_events.subscribe("TreeOpen", function()
-	bufferline_api.set_offset(get_tree_size())
-end)
-
-nvim_tree_events.subscribe("Resize", function()
-	bufferline_api.set_offset(get_tree_size())
-end)
-
-nvim_tree_events.subscribe("TreeClose", function()
-	bufferline_api.set_offset(0)
-end)

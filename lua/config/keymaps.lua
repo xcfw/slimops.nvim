@@ -43,9 +43,9 @@ for _, m in ipairs({'n', 'v', 'i'}) do
 end
 
 -- Copy file paths to system clipboard
-map('n', '<space>y', '<cmd>let @+ = expand("%")<cr>', opts)  -- Copy relative path
-map('n', '<space>Y', '<cmd>let @+ = expand("%:p")<cr>', opts)  -- Copy absolute path
-map('n', '<space>u', '<cmd>let @+ = expand("%:t")<cr>', opts)  -- Copy filename only
+map('n', '<Space>y', '<cmd>let @+ = expand("%")<cr>', opts)  -- Copy relative path
+map('n', '<Space>Y', '<cmd>let @+ = expand("%:p")<cr>', opts)  -- Copy absolute path
+map('n', '<Space>u', '<cmd>let @+ = expand("%:t")<cr>', opts)  -- Copy filename only
 
 -- Clipboard behavior: specific deletions go to 'd' register (local only, not system clipboard)
 map('n', 'dd', '"ddd', opts)  -- Delete line to 'd' register
@@ -55,11 +55,10 @@ map('n', 'd$', '"dd$', opts)  -- Delete to end of line to 'd' register
 map('n', 'C', '"dC', opts)    -- Change to end of line to 'd' register
 
 -- paste from d register without overwriting it
-map('x', '<space>p', '"dp', opts)
-map('n', '<space>P', '"dP', opts)
+map('x', '<Space>p', '"dp', opts)
+map('n', '<Space>P', '"dP', opts)
 
 -- nvim-tree keymaps
-map('n', '<leader>E', '<cmd>NvimTreeToggle<cr>', opts)
 map('n', '<leader>e', '<cmd>lua if not require("mini.files").close() then require("mini.files").open() end<cr>', opts)
 
 -- Barbar keymaps (tabs/buffers)
@@ -70,32 +69,33 @@ for i = 1, 4 do
 end
 
 -- Telescope keymaps
-map('n', '<leader>j', '<cmd>lua require("telescope.builtin").find_files()<cr>', opts)
--- map('n', '<leader>J', '<cmd>lua require("telescope.builtin").find_files({find_command={"rg","--no-ignore","--hidden","--files"}})<cr>', opts)
-map('n', '<leader>J', function()
-    require("telescope.builtin").find_files({
-        find_command = {
-            "rg",
-            "--files",
-            "--hidden",
-            "--no-ignore",
-            -- ⬇️ Explicit Exclusions (Glob Rules) ⬇️
-            "--glob", "!**/.git/*",
-            "--glob", "!**/node_modules/*",
-            "--glob", "!**/target/*",       -- Rust/Caches
-            "--glob", "!**/build/*",
-            "--glob", "!**/dist/*",
-            "--glob", "!**/.cache/*",
-            "--glob", "!**/.local/share/*", -- Various hidden caches/data
-            "--glob", "!**/.npm/*",
-        }
-    })
-end, opts)
-map('n', '<leader>k', '<cmd>lua require("telescope").extensions.live_grep_args.live_grep_args()<cr>', opts)
-map('n', '<leader>K', '<cmd>lua require("telescope").extensions.live_grep_args.live_grep_args({vimgrep_arguments={"rg","--color=never","--no-heading","--with-filename","--line-number","--column","--smart-case","--hidden","--no-ignore","--unrestricted"}})<cr>', opts)
+map('n', '<leader>l', '<cmd>lua require("telescope.builtin").find_files({find_command={"rg","--files","--sortr","modified"}})<cr>', opts)
+map('n', '<leader>k', '<cmd>lua require("telescope").extensions.live_grep_args.live_grep_args({vimgrep_arguments={"rg","--color=never","--no-heading","--with-filename","--line-number","--column","--smart-case","--hidden","--no-ignore","--unrestricted"}})<cr>', opts)
 map('n', '<leader>f', '<cmd>lua require("telescope.builtin").live_grep({additional_args={"--hidden","--no-ignore"}})<cr>', opts)
+map('n', '<leader>J', function()
+  require("telescope.builtin").find_files({
+    find_command = {
+      "rg",
+      "--files",
+      "--hidden",
+      "--no-ignore",
+      -- ⬇️ Explicit Exclusions (Glob Rules) ⬇️
+      "--glob", "!**/.git/*",
+      "--glob", "!**/node_modules/*",
+      "--glob", "!**/target/*",       -- Rust/Caches
+      "--glob", "!**/build/*",
+      "--glob", "!**/dist/*",
+      "--glob", "!**/.cache/*",
+      "--glob", "!**/.local/share/*", -- Various hidden caches/data
+      "--glob", "!**/.npm/*",
+    }
+  })
+end, opts)
+-- map('n', '<leader>j', '<cmd>lua require("telescope.builtin").find_files()<cr>', opts)
+-- map('n', '<leader>J', '<cmd>lua require("telescope.builtin").find_files({find_command={"rg","--no-ignore","--hidden","--files"}})<cr>', opts)
+-- map('n', '<leader>k', '<cmd>lua require("telescope").extensions.live_grep_args.live_grep_args()<cr>', opts)
+-- map('n', '<leader>l', '<cmd>lua require("telescope.builtin").oldfiles({cwd_only=true})<cr>', opts)
 
-map('n', '<leader>l', '<cmd>lua require("telescope.builtin").oldfiles({cwd_only=true})<cr>', opts)
 map('n', '<leader>gh', '<cmd>lua require("telescope.builtin").help_tags()<cr>', opts)
 map('n', '<leader>gs', '<cmd>lua require("telescope.builtin").lsp_document_symbols()<cr>', opts)
 map('n', '<leader>gr', '<cmd>lua require("telescope.builtin").lsp_references()<cr>', opts)
@@ -136,10 +136,10 @@ map('n', '<Space>wa', '<cmd>lua vim.lsp.buf.add_workspace_folder()<cr>', opts)
 map('n', '<Space>wr', '<cmd>lua vim.lsp.buf.remove_workspace_folder()<cr>', opts)
 map('n', '<Space>wl', '<cmd>lua print(vim.inspect(vim.lsp.buf.list_workspace_folders()))<cr>', opts)
 
--- Copilot integration via nvim-cmp
--- Tab/S-Tab for navigating completions (configured in init.lua)
--- Copilot suggestions appear as completion items through copilot-cmp
--- Use Enter to accept, Tab/S-Tab to navigate suggestions
+-- Copilot integration (native suggestion, no copilot-cmp)
+-- Tab accepts Copilot ghost-text
+-- Enter accepts explicit cmp completions, otherwise newline
+-- S-Tab navigates cmp menu
 
 -- Window/tmux navigation in terminal mode (vim-tmux-navigator handles normal mode)
 map('t', '<C-h>', '<cmd>TmuxNavigateLeft<cr>', opts)

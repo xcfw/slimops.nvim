@@ -11,9 +11,9 @@ local terminals = {}
 
 local backends = {
   claude = {
-    default = { id = 10, cmd = 'claude' },
-    work    = { id = 11, cmd = 'ANTHROPIC_API_KEY="" CLAUDE_CONFIG_DIR=~/.claude-work claude' },
-    code    = { id = 12, cmd = 'opencode' },
+    default = { id = 10, cmd = 'TERM=tmux-256color claude' },
+    work    = { id = 11, cmd = 'TERM=tmux-256color ANTHROPIC_API_KEY="" CLAUDE_CONFIG_DIR=~/.claude-work claude' },
+    code    = { id = 12, cmd = 'TERM=tmux-256color opencode' },
   },
 }
 
