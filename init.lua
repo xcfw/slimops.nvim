@@ -84,12 +84,28 @@ vim.diagnostic.config({
 })
 
 -- Wavy underlines for diagnostics (requires terminal with undercurl support)
+-- + Neogit diff highlights (nvim-solarized-lua doesn't define them)
 vim.api.nvim_create_autocmd("ColorScheme", {
 	callback = function()
 		vim.api.nvim_set_hl(0, "DiagnosticUnderlineError", { undercurl = true, sp = "#f38ba8" })
 		vim.api.nvim_set_hl(0, "DiagnosticUnderlineWarn", { undercurl = true, sp = "#f9e2af" })
 		vim.api.nvim_set_hl(0, "DiagnosticUnderlineInfo", { undercurl = true, sp = "#89dceb" })
 		vim.api.nvim_set_hl(0, "DiagnosticUnderlineHint", { undercurl = true, sp = "#a6e3a1" })
+
+		-- Neogit diff: link to native Diff* groups so solarized theme controls colors
+		local neogit_links = {
+			{ "NeogitDiffAdd", "DiffAdd" },
+			{ "NeogitDiffDelete", "DiffDelete" },
+			{ "NeogitDiffAddHighlight", "DiffAdd" },
+			{ "NeogitDiffDeleteHighlight", "DiffDelete" },
+			{ "NeogitDiffContext", "Normal" },
+			{ "NeogitDiffContextHighlight", "CursorLine" },
+			{ "NeogitHunkHeader", "Title" },
+			{ "NeogitHunkHeaderHighlight", "Title" },
+		}
+		for _, pair in ipairs(neogit_links) do
+			vim.api.nvim_set_hl(0, pair[1], { link = pair[2], force = true })
+		end
 	end,
 })
 
@@ -116,6 +132,11 @@ vim.filetype.add({
 -- Load centralized keymaps BEFORE plugins
 require("config.keymaps")
 
+local function apply_solarized_background(bg)
+	vim.o.background = bg
+	pcall(vim.cmd, "colorscheme solarized")
+end
+
 -- Set up plugins
 require("lazy").setup({
 	-- Solarized theme (original Ethan Schoonover palette)
@@ -134,10 +155,10 @@ require("lazy").setup({
 		priority = 999,
 		opts = {
 			set_dark_mode = function()
-				vim.o.background = "dark"
+				apply_solarized_background("dark")
 			end,
 			set_light_mode = function()
-				vim.o.background = "light"
+				apply_solarized_background("light")
 			end,
 		},
 	},
@@ -613,12 +634,9 @@ require("lazy").setup({
 		"echasnovski/mini.animate",
 		version = "*",
 		config = function()
-			require("mini.animate").setup({
-				scroll = {
-					timing = function(_, n)
-						return math.min(250 / n, 10)
-					end,
-				},
+			local animate = require("mini.animate")
+			animate.setup({
+				scroll = { enable = false },
 			})
 		end,
 	},
