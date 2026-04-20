@@ -46,8 +46,10 @@ This configuration follows a straightforward philosophy:
 
 ### Prerequisites
 ```bash
-# Neovim 0.9+ required
+# Neovim 0.12+ required
 nvim --version
+ripgrep --version
+fzf --version
 ```
 
 ### Setup

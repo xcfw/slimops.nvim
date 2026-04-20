@@ -234,40 +234,53 @@ require("lazy").setup({
 	-- Syntax highlighting
 	{
 		"nvim-treesitter/nvim-treesitter",
+		branch = "main",
 		build = ":TSUpdate",
+		lazy = false,
 		config = function()
-			require("nvim-treesitter.configs").setup({
-				ensure_installed = {
-					"dockerfile",
-					"lua",
-					"vim",
-					"vimdoc",
-					"javascript",
-					"typescript",
-					"python",
-					"go",
-					"ruby",
-					"html",
-					"css",
-					"json",
-					"yaml",
-					"terraform",
-					"hcl",
-					"markdown",
-					"markdown_inline",
-					"gotmpl",
-					"helm",
-				},
-				highlight = { enable = true },
-				indent = { enable = true },
-				incremental_selection = {
-					enable = true,
-					keymaps = {
-						init_selection = ";v",
-						node_incremental = "<CR>",
-						node_decremental = "<BS>",
-					},
-				},
+			local ensure = {
+				"dockerfile",
+				"lua",
+				"vim",
+				"vimdoc",
+				"javascript",
+				"typescript",
+				"python",
+				"go",
+				"ruby",
+				"html",
+				"css",
+				"json",
+				"yaml",
+				"terraform",
+				"hcl",
+				"markdown",
+				"markdown_inline",
+				"gotmpl",
+				"helm",
+			}
+			require("nvim-treesitter").install(ensure)
+
+			-- filetype -> parser name overrides
+			local ft_to_lang = {
+				gotmpl = "gotmpl",
+				helm = "helm",
+				terraform = "terraform",
+				tf = "terraform",
+			}
+
+			vim.api.nvim_create_autocmd("FileType", {
+				callback = function(ev)
+					local ft = vim.bo[ev.buf].filetype
+					local lang = ft_to_lang[ft] or vim.treesitter.language.get_lang(ft) or ft
+					if not lang or lang == "" then
+						return
+					end
+					local ok = pcall(vim.treesitter.start, ev.buf, lang)
+					if ok then
+						vim.bo[ev.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+					end
+				end,
 			})
 		end,
 	},

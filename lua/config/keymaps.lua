@@ -202,6 +202,87 @@ map("n", "<leader>s", function()
 	get_floating_terminal():toggle()
 end, opts)
 
+-- pi agent in tmux popup (nvim context auto-injected via ~/.pi/agent/extensions/nvim-context.ts)
+_G.pi_context = function()
+	local bufs = {}
+	for _, b in ipairs(vim.fn.getbufinfo({ buflisted = 1 })) do
+		if b.name and b.name ~= "" then
+			table.insert(bufs, {
+				path = b.name,
+				modified = b.changed == 1,
+				current = b.bufnr == vim.api.nvim_get_current_buf(),
+			})
+		end
+	end
+
+	local cur_path = vim.api.nvim_buf_get_name(0)
+	local cur = nil
+	if cur_path ~= "" then
+		local pos = vim.api.nvim_win_get_cursor(0)
+		cur = { path = cur_path, line = pos[1], col = pos[2] + 1, ft = vim.bo.filetype }
+	end
+
+	local sel = nil
+	local sp, ep = vim.fn.getpos("'<"), vim.fn.getpos("'>")
+	if sp[2] > 0 and ep[2] > 0 and (sp[2] < ep[2] or (sp[2] == ep[2] and sp[3] <= ep[3])) then
+		local ok, lines = pcall(vim.api.nvim_buf_get_lines, 0, sp[2] - 1, ep[2], false)
+		if ok and lines and #lines > 0 then
+			sel = {
+				start = { sp[2], sp[3] },
+				["end"] = { ep[2], ep[3] },
+				text = table.concat(lines, "\n"),
+			}
+		end
+	end
+
+	local diags = {}
+	for _, d in ipairs(vim.diagnostic.get(0)) do
+		table.insert(diags, {
+			path = cur_path,
+			line = d.lnum + 1,
+			sev = d.severity,
+			msg = d.message,
+		})
+	end
+
+	return vim.json.encode({
+		cwd = vim.fn.getcwd(),
+		cur = cur,
+		buffers = bufs,
+		selection = sel,
+		diagnostics = diags,
+	})
+end
+
+map("n", "<leader>p", function()
+	if vim.env.TMUX == nil then
+		vim.notify("pi: not inside tmux", vim.log.levels.WARN)
+		return
+	end
+
+	local pi_bin = vim.fn.exepath("pi")
+	if pi_bin == "" then
+		vim.notify("pi: binary not found", vim.log.levels.ERROR)
+		return
+	end
+
+	local sock = vim.v.servername
+	local cwd = vim.fn.getcwd()
+	local job = vim.fn.jobstart({
+		"tmux",
+		"display-popup",
+		"-d", cwd,
+		"-w", "80%",
+		"-h", "80%",
+		"-E",
+		string.format("NVIM=%s %s", vim.fn.shellescape(sock), vim.fn.shellescape(pi_bin)),
+	}, { detach = true })
+
+	if job <= 0 then
+		vim.notify("pi: failed to spawn tmux popup", vim.log.levels.ERROR)
+	end
+end, { noremap = true, silent = true, desc = "pi agent (tmux popup)" })
+
 -- Claude terminals (copy path/selection to clipboard, then open terminal)
 map("n", "<leader>a", function()
 	require("claude-prompt").open_default()
@@ -300,7 +381,7 @@ local function base64_decode()
 end
 
 map("v", "<leader>b", function() base64_encode() end, { noremap = true, silent = true, desc = "Base64 encode" })
-map("v", "<leader>v", function() base64_decode() end, { noremap = true, silent = true, desc = "Base64 decode" })
+map("v", "<leader>B", function() base64_decode() end, { noremap = true, silent = true, desc = "Base64 decode" })
 
 -- Export functions for visual mode keymaps
 return {
