@@ -517,6 +517,19 @@ require("lazy").setup({
 			require("neogit").setup({
 				integrations = { diffview = true },
 			})
+
+			-- Workaround: nvim 0.12 errors E474 when neogit reuses the
+			-- NeogitConsole buffer and tries to reset buftype from 'terminal'
+			-- to 'nofile'. Wipe any stale terminal buffer first.
+			local Buffer = require("neogit.lib.buffer")
+			local orig_from_name = Buffer.from_name
+			Buffer.from_name = function(name)
+				local h = vim.fn.bufnr(name)
+				if h ~= -1 and vim.bo[h].buftype == "terminal" then
+					pcall(vim.api.nvim_buf_delete, h, { force = true })
+				end
+				return orig_from_name(name)
+			end
 		end,
 	},
 
