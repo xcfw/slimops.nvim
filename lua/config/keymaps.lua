@@ -124,6 +124,8 @@ map("n", "<leader>J", function()
 	})
 end, opts)
 
+map("n", "<leader>j", function() require("telescope.builtin").find_files() end, opts)
+
 map("n", "<leader>gh", function() require("telescope.builtin").help_tags() end, opts)
 map("n", "<leader>gs", function() require("telescope.builtin").lsp_document_symbols() end, opts)
 map("n", "<leader>gr", function() require("telescope.builtin").lsp_references() end, opts)
@@ -266,21 +268,48 @@ map("n", "<leader>p", function()
 		return
 	end
 
+	local function tmux(args)
+		local out = vim.fn.system(vim.list_extend({ "tmux" }, args))
+		return vim.v.shell_error, vim.fn.trim(out)
+	end
+
 	local sock = vim.v.servername
 	local cwd = vim.fn.getcwd()
-	local job = vim.fn.jobstart({
-		"tmux",
-		"display-popup",
-		"-d", cwd,
-		"-w", "80%",
-		"-h", "80%",
-		"-E",
-		string.format("NVIM=%s %s", vim.fn.shellescape(sock), vim.fn.shellescape(pi_bin)),
-	}, { detach = true })
 
-	if job <= 0 then
-		vim.notify("pi: failed to spawn tmux popup", vim.log.levels.ERROR)
+	-- Parent tmux session name = window name in _scratch.
+	local _, parent_sess = tmux({ "display-message", "-p", "#S" })
+	if parent_sess == "" or parent_sess == "_scratch" then
+		parent_sess = vim.fn.fnamemodify(cwd, ":t"):gsub("%W", "_")
 	end
+	local target = "_scratch:" .. parent_sess
+
+	-- Ensure _scratch session exists.
+	local rc = tmux({ "has-session", "-t", "_scratch" })
+	if rc ~= 0 then
+		tmux({ "new-session", "-d", "-s", "_scratch", "-c", cwd })
+	end
+
+	-- Ensure window exists.
+	rc = tmux({ "has-session", "-t", target })
+	if rc ~= 0 then
+		tmux({ "new-window", "-d", "-t", "_scratch:", "-n", parent_sess, "-c", cwd,
+			string.format("NVIM=%s exec %s", sock, pi_bin) })
+	else
+		-- Window exists; check if pi running in any pane.
+		local _, cmds = tmux({ "list-panes", "-t", target, "-F", "#{pane_current_command}" })
+		local running = false
+		for line in (cmds .. "\n"):gmatch("([^\n]*)\n") do
+			if line == "pi" then running = true break end
+		end
+		if not running then
+			tmux({ "send-keys", "-t", target,
+				string.format("NVIM=%s exec %s", vim.fn.shellescape(sock), vim.fn.shellescape(pi_bin)),
+				"Enter" })
+		end
+	end
+
+	-- Switch client to that window.
+	tmux({ "switch-client", "-t", target })
 end, { noremap = true, silent = true, desc = "pi agent (tmux popup)" })
 
 -- Claude terminals (copy path/selection to clipboard, then open terminal)

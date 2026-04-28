@@ -167,58 +167,60 @@ require("lazy").setup({
 	{
 		"lewis6991/gitsigns.nvim",
 		lazy = false,
-		config = function()
-			require("gitsigns").setup({
-				signs = {
-					add = { text = "+" },
-					change = { text = "~" },
-					delete = { text = "_" },
-					topdelete = { text = "‾" },
-					changedelete = { text = "~" },
-				},
-				current_line_blame = true,
-				current_line_blame_opts = {
-					virt_text = true,
-					virt_text_pos = "eol",
-					delay = 500,
-				},
-				on_attach = function(bufnr)
-					local gs = package.loaded.gitsigns
-					local map = function(mode, l, r, desc)
-						vim.keymap.set(mode, l, r, { buffer = bufnr, desc = desc })
-					end
-
-					-- Navigation between hunks
-					map("n", "]h", gs.next_hunk, "Next hunk")
-					map("n", "[h", gs.prev_hunk, "Prev hunk")
-
-					-- Preview hunk
-					map("n", "<leader>hp", gs.preview_hunk, "Preview hunk")
-				end,
-			})
-		end,
+    opts = {
+      signs = {
+        add = { text = "+" },
+        change = { text = "~" },
+        delete = { text = "_" },
+        topdelete = { text = "‾" },
+        changedelete = { text = "~" },
+      },
+      current_line_blame = true,
+      current_line_blame_opts = {
+        virt_text = true,
+        virt_text_pos = "eol",
+        delay = 500,
+      },
+      on_attach = function(bufnr)
+          local gs = package.loaded.gitsigns
+          local map = function(mode, l, r, desc)
+            vim.keymap.set(mode, l, r, { buffer = bufnr, desc = desc })
+          end
+  
+          -- Navigation between hunks
+          map("n", "]h", gs.next_hunk, "Next hunk")
+          map("n", "[h", gs.prev_hunk, "Prev hunk")
+  
+          -- Preview hunk
+          map("n", "<leader>hp", gs.preview_hunk, "Preview hunk")
+        end,
+    },
 	},
 
 	{
 		"akinsho/toggleterm.nvim",
 		version = "*",
-		config = function()
-			require("toggleterm").setup({
-				-- Only configure non-default values
-				shading_factor = 2,
-				open_mapping = [[<c-\>]],
-				size = math.floor(vim.o.lines * 0.7),
-			})
-		end,
+    opts = {
+      open_mapping = [[<c-\>]],
+      size = function(term)
+        if term.direction == "horizontal" then
+          return 15
+        elseif term.direction == "vertical" then
+          return math.floor(vim.o.columns * 0.4)
+        else
+          return math.floor(vim.o.lines * 0.7)
+        end
+      end,
+    },
 	},
 
 	{
 		"iamcco/markdown-preview.nvim",
 		cmd = { "MarkdownPreviewToggle", "MarkdownPreview", "MarkdownPreviewStop" },
 		build = "cd app && yarn install",
-		init = function()
-			vim.g.mkdp_filetypes = { "markdown" }
-		end,
+    init = function()
+      vim.g.mkdp_filetypes = { "markdown" }
+    end,
 		ft = { "markdown" },
 	},
 
@@ -291,44 +293,39 @@ require("lazy").setup({
 		dependencies = {
 			"echasnovski/mini.icons",
 		},
-		config = function()
-			require("lualine").setup({
-				options = {
-					icons_enabled = true,
-					theme = "auto", -- keep it automatic, don't change
-				},
-				sections = {
-					lualine_b = { "diagnostics" },
-					lualine_c = {
-						{
-							"filename",
-							path = 1, -- 0 = just filename, 1 = relative path, 2 = absolute path
-						},
-					},
-					lualine_x = { "encoding", "fileformat", "filetype" },
-				},
-			})
-		end,
+    opts = {
+      options = {
+        icons_enabled = true,
+        theme = "auto", -- keep it automatic, don't change
+        -- globalstatus = true,
+      },
+      sections = {
+        lualine_b = { "diagnostics" },
+        lualine_c = {
+          {
+            "filename",
+            path = 1, -- 0 = just filename, 1 = relative path, 2 = absolute path
+          },
+        },
+        lualine_x = { "encoding", "fileformat", "filetype" },
+      },
+    },
 	},
 	-- Tab bar
 	{
 		"romgrk/barbar.nvim",
 		dependencies = { "echasnovski/mini.icons" },
-		config = function()
-			require("barbar").setup({
-				animation = false,
-				auto_hide = false,
-				clickable = true,
-				exclude_ft = { "NvimTree" },
-				exclude_name = {},
-				icons = {
-					button = "",
-					filetype = {
-						enabled = true,
-					},
-				},
-			})
-		end,
+    opts = {
+      animation = false,
+      auto_hide = true,
+      clickable = true,
+      icons = {
+        button = "",
+        filetype = {
+          enabled = true,
+        },
+      },
+    },
 	},
 
 	-- LSP Configuration (intentionally without Mason to keep it minimal and simple)
@@ -485,28 +482,26 @@ require("lazy").setup({
 		"zbirenbaum/copilot.lua",
 		cmd = "Copilot",
 		event = "InsertEnter",
-		config = function()
-			require("copilot").setup({
-				copilot_model = "gpt-41-copilot",
-				suggestion = {
-					enabled = true,
-					auto_trigger = true,
-					keymap = { accept = false },
-				},
-				panel = { enabled = false },
-				workspace_folders = {
-					vim.fn.expand("~/dev/"),
-					vim.fn.expand("~/tools/"),
-					vim.fn.expand("~/.config/"),
-					vim.fn.expand("~/.zsh*"),
-				},
-				filetypes = {
-					gitcommit = true,
-					markdown = true,
-					yaml = true,
-				},
-			})
-		end,
+    opts = {
+      copilot_model = "gpt-41-copilot",
+      suggestion = {
+        enabled = true,
+        auto_trigger = true,
+        keymap = { accept = false },
+      },
+      panel = { enabled = false },
+      workspace_folders = {
+        vim.fn.expand("~/dev/"),
+        vim.fn.expand("~/tools/"),
+        vim.fn.expand("~/.config/"),
+        vim.fn.expand("~/.zsh*"),
+      },
+      filetypes = {
+        gitcommit = true,
+        markdown = true,
+        yaml = true,
+      },
+    },
 	},
 
 	-- Git integration
@@ -585,7 +580,7 @@ require("lazy").setup({
 			local gitlinker = require("gitlinker")
 			gitlinker.setup()
 			-- Set up custom keymaps that open in browser
-			vim.keymap.set({ "n", "v" }, "<leader>gu", function()
+			vim.keymap.set({ "n", "v" }, "<space>u", function()
 				gitlinker.link({ action = vim.ui.open })
 			end, { desc = "Open GitHub URL in browser" })
 		end,
