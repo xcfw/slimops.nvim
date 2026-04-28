@@ -1,5 +1,5 @@
 -- init.lua
--- Bootstrap lazy.nvim
+-- bootstrap lazy.nvim
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.uv.fs_stat(lazypath) then
 	vim.fn.system({
@@ -13,13 +13,13 @@ if not vim.uv.fs_stat(lazypath) then
 end
 vim.opt.rtp:prepend(lazypath)
 
--- Basic options
+-- basic options
 vim.g.mapleader = ";"
 vim.g.maplocalleader = ";"
 vim.opt.number = true
 vim.opt.relativenumber = true
 vim.opt.mouse = "a"
-vim.opt.termguicolors = true -- Essential for theme support
+vim.opt.termguicolors = true -- essential for theme support
 
 vim.o.ignorecase = true
 vim.o.smartcase = true
@@ -39,7 +39,7 @@ vim.schedule(function()
 	vim.o.clipboard = "unnamedplus"
 end)
 
--- Built-in auto-reload when files change on disk (replaces hotreload plugin)
+-- built-in auto-reload when files change on disk (replaces hotreload plugin)
 vim.opt.autoread = true
 vim.api.nvim_create_autocmd({ "FocusGained", "BufEnter", "CursorHold", "CursorHoldI" }, {
 	callback = function()
@@ -49,7 +49,7 @@ vim.api.nvim_create_autocmd({ "FocusGained", "BufEnter", "CursorHold", "CursorHo
 	end,
 })
 
--- Indentation settings
+-- indentation settings
 vim.opt.tabstop = 2
 vim.opt.shiftwidth = 2
 vim.opt.softtabstop = 2
@@ -57,14 +57,14 @@ vim.opt.expandtab = true
 vim.opt.smartindent = true
 vim.opt.autoindent = true
 
--- Persistent undo
+-- persistent undo
 vim.opt.undofile = true
 vim.opt.undolevels = 999
 
--- Always show sign column for diagnostics + gitsigns
+-- always show sign column for diagnostics + gitsigns
 vim.opt.signcolumn = "yes"
 
--- Diagnostic display (Neovim 0.10+ API)
+-- diagnostic display (Neovim 0.10+ API)
 vim.o.cmdheight = 0
 vim.diagnostic.config({
 	underline = true,
@@ -75,7 +75,7 @@ vim.diagnostic.config({
 			[vim.diagnostic.severity.INFO] = "",
 			[vim.diagnostic.severity.HINT] = "",
 		},
-		-- Highlight line numbers for lines with diagnostics
+		-- highlight line numbers for lines with diagnostics
 		numhl = {
 			[vim.diagnostic.severity.ERROR] = "DiagnosticSignError",
 			[vim.diagnostic.severity.WARN] = "DiagnosticSignWarn",
@@ -83,8 +83,8 @@ vim.diagnostic.config({
 	},
 })
 
--- Wavy underlines for diagnostics (requires terminal with undercurl support)
--- + Neogit diff highlights (nvim-solarized-lua doesn't define them)
+-- wavy underlines for diagnostics (requires terminal with undercurl support)
+-- + neogit diff highlights (nvim-solarized-lua doesn't define them)
 vim.api.nvim_create_autocmd("ColorScheme", {
 	callback = function()
 		vim.api.nvim_set_hl(0, "DiagnosticUnderlineError", { undercurl = true, sp = "#f38ba8" })
@@ -92,7 +92,7 @@ vim.api.nvim_create_autocmd("ColorScheme", {
 		vim.api.nvim_set_hl(0, "DiagnosticUnderlineInfo", { undercurl = true, sp = "#89dceb" })
 		vim.api.nvim_set_hl(0, "DiagnosticUnderlineHint", { undercurl = true, sp = "#a6e3a1" })
 
-		-- Neogit diff: link to native Diff* groups so solarized theme controls colors
+		-- neogit diff: link to native Diff* groups so solarized theme controls colors
 		local neogit_links = {
 			{ "NeogitDiffAdd", "DiffAdd" },
 			{ "NeogitDiffDelete", "DiffDelete" },
@@ -109,14 +109,14 @@ vim.api.nvim_create_autocmd("ColorScheme", {
 	end,
 })
 
--- Flash yanked region briefly
+-- flash yanked region briefly
 vim.api.nvim_create_autocmd("TextYankPost", {
 	callback = function()
 		vim.highlight.on_yank()
 	end,
 })
 
--- Helm and Go template filetype detection
+-- helm and go template filetype detection
 vim.filetype.add({
 	extension = {
 		gotmpl = "helm",
@@ -129,7 +129,7 @@ vim.filetype.add({
 	},
 })
 
--- Load centralized keymaps BEFORE plugins
+-- load centralized keymaps BEFORE plugins
 require("config.keymaps")
 
 local function apply_solarized_background(bg)
@@ -137,9 +137,9 @@ local function apply_solarized_background(bg)
 	pcall(vim.cmd, "colorscheme solarized")
 end
 
--- Set up plugins
+-- set up plugins
 require("lazy").setup({
-	-- Solarized theme (original Ethan Schoonover palette)
+	-- solarized theme (original Ethan Schoonover palette)
 	{
 		"ishan9299/nvim-solarized-lua",
 		lazy = false,
@@ -149,7 +149,7 @@ require("lazy").setup({
 		end,
 	},
 
-	-- Auto dark/light mode following macOS appearance
+	-- auto dark/light mode following macOS appearance
 	{
 		"f-person/auto-dark-mode.nvim",
 		priority = 999,
@@ -163,7 +163,7 @@ require("lazy").setup({
 		},
 	},
 
-	-- Git signs in the gutter
+	-- git signs in the gutter
 	{
 		"lewis6991/gitsigns.nvim",
 		lazy = false,
@@ -187,11 +187,11 @@ require("lazy").setup({
             vim.keymap.set(mode, l, r, { buffer = bufnr, desc = desc })
           end
   
-          -- Navigation between hunks
+          -- navigation between hunks
           map("n", "]h", gs.next_hunk, "Next hunk")
           map("n", "[h", gs.prev_hunk, "Prev hunk")
   
-          -- Preview hunk
+          -- preview hunk
           map("n", "<leader>hp", gs.preview_hunk, "Preview hunk")
         end,
     },
@@ -233,7 +233,7 @@ require("lazy").setup({
       vim.o.timeoutlen = 300
     end,
   },
-	-- Syntax highlighting
+	-- syntax highlighting
 	{
 		"nvim-treesitter/nvim-treesitter",
 		branch = "main",
@@ -286,8 +286,15 @@ require("lazy").setup({
 			})
 		end,
 	},
+  
+  -- modern undotree
+  {
+      "XXiaoA/atone.nvim",
+      cmd = "Atone",
+      opts = {},
+  },
 
-	-- Status line
+	-- status line
 	{
 		"nvim-lualine/lualine.nvim",
 		dependencies = {
@@ -311,7 +318,7 @@ require("lazy").setup({
       },
     },
 	},
-	-- Tab bar
+	-- tab bar
 	{
 		"romgrk/barbar.nvim",
 		dependencies = { "echasnovski/mini.icons" },
@@ -328,8 +335,8 @@ require("lazy").setup({
     },
 	},
 
-	-- LSP Configuration (intentionally without Mason to keep it minimal and simple)
-	-- Using native Neovim 0.11+ vim.lsp.config API
+	-- LSP configuration (intentionally without mason to keep it minimal and simple)
+	-- using native neovim 0.11+ vim.lsp.config API
 	{
 		"neovim/nvim-lspconfig",
 		dependencies = {
@@ -338,12 +345,12 @@ require("lazy").setup({
 		config = function()
 			local capabilities = require("cmp_nvim_lsp").default_capabilities()
 
-			-- Set capabilities for all LSP servers globally
+			-- set capabilities for all LSP servers globally
 			vim.lsp.config("*", {
 				capabilities = capabilities,
 			})
 
-			-- Lua LSP (install: brew install lua-language-server on macOS)
+			-- lua LSP (install: brew install lua-language-server on macOS)
 			vim.lsp.config.lua_ls = {
 				settings = {
 					Lua = {
@@ -356,7 +363,7 @@ require("lazy").setup({
 				},
 			}
 
-			-- Helm LSP (install: brew install helm-ls)
+			-- helm LSP (install: brew install helm-ls)
 			vim.lsp.config.helm_ls = {
 				filetypes = { "helm" },
 				settings = {
@@ -392,8 +399,8 @@ require("lazy").setup({
 				end,
 			}
 
-			-- Enable all LSP servers
-			-- Install instructions:
+			-- enable all LSP servers
+			-- install instructions:
 			-- pyright: pip install pyright
 			-- gopls: go install golang.org/x/tools/gopls@latest
 			-- solargraph: gem install solargraph
@@ -504,31 +511,16 @@ require("lazy").setup({
     },
 	},
 
-	-- Git integration
+	-- git integration
 	{
 		"NeogitOrg/neogit",
 		dependencies = { "nvim-lua/plenary.nvim", "sindrets/diffview.nvim" },
-		config = function()
-			require("neogit").setup({
-				integrations = { diffview = true },
-			})
-
-			-- Workaround: nvim 0.12 errors E474 when neogit reuses the
-			-- NeogitConsole buffer and tries to reset buftype from 'terminal'
-			-- to 'nofile'. Wipe any stale terminal buffer first.
-			local Buffer = require("neogit.lib.buffer")
-			local orig_from_name = Buffer.from_name
-			Buffer.from_name = function(name)
-				local h = vim.fn.bufnr(name)
-				if h ~= -1 and vim.bo[h].buftype == "terminal" then
-					pcall(vim.api.nvim_buf_delete, h, { force = true })
-				end
-				return orig_from_name(name)
-			end
-		end,
+    opts = {
+      integrations = { diffview = true },
+    },
 	},
 
-	-- Diff viewer for merge conflicts (3-way merge)
+	-- diff viewer for merge conflicts (3-way merge)
 	{
 		"sindrets/diffview.nvim",
 		dependencies = { "nvim-lua/plenary.nvim" },
@@ -537,35 +529,35 @@ require("lazy").setup({
 			require("diffview").setup({
 				view = {
 					merge_tool = {
-						layout = "diff3_horizontal", -- LOCAL | BASE | REMOTE (3 panes, synced scroll)
+						layout = "diff3_horizontal", -- lOCAL | BASE | REMOTE (3 panes, synced scroll)
 						disable_diagnostics = true,
 						winbar_info = true,
 					},
 				},
 				hooks = {
 					view_opened = function()
-						-- Focus the middle pane (BASE) when merge view opens
+						-- focus the middle pane (BASE) when merge view opens
 						vim.defer_fn(function()
-							vim.cmd("wincmd l") -- Move to middle pane
+							vim.cmd("wincmd l") -- move to middle pane
 						end, 50)
 					end,
 				},
 				keymaps = {
 					view = {
-						-- Conflict resolution (using actions API)
+						-- conflict resolution (using actions API)
 						{ "n", "<space>co", actions.conflict_choose("ours"), { desc = "Choose OURS" } },
 						{ "n", "<space>ct", actions.conflict_choose("theirs"), { desc = "Choose THEIRS" } },
 						{ "n", "<space>cb", actions.conflict_choose("base"), { desc = "Choose BASE" } },
 						{ "n", "<space>ca", actions.conflict_choose("all"), { desc = "Choose ALL" } },
 						{ "n", "<space>cx", actions.conflict_choose("none"), { desc = "Delete conflict" } },
-						-- Close with ;q
+						-- close with ;q
 						{ "n", "<leader>q", "<cmd>DiffviewClose<CR>", { desc = "Close diffview" } },
 					},
 					file_panel = {
-						-- Tab to cycle through conflicted files
+						-- tab to cycle through conflicted files
 						{ "n", "<Tab>", actions.select_next_entry, { desc = "Next file" } },
 						{ "n", "<S-Tab>", actions.select_prev_entry, { desc = "Prev file" } },
-						-- Close with ;q
+						-- close with ;q
 						{ "n", "<leader>q", "<cmd>DiffviewClose<CR>", { desc = "Close diffview" } },
 					},
 				},
@@ -573,13 +565,13 @@ require("lazy").setup({
 		end,
 	},
 
-	-- GitHub link integration - open files in browser
+	-- gitHub link integration - open files in browser
 	{
 		"linrongbin16/gitlinker.nvim",
 		config = function()
 			local gitlinker = require("gitlinker")
 			gitlinker.setup()
-			-- Set up custom keymaps that open in browser
+			-- set up custom keymaps that open in browser
 			vim.keymap.set({ "n", "v" }, "<space>u", function()
 				gitlinker.link({ action = vim.ui.open })
 			end, { desc = "Open GitHub URL in browser" })
@@ -606,7 +598,7 @@ require("lazy").setup({
 		end,
 	},
 
-	-- Comment toggling
+	-- comment toggling
 	{
 		"numToStr/Comment.nvim",
 		lazy = false,
@@ -615,7 +607,7 @@ require("lazy").setup({
 		end,
 	},
 
-	-- Mini file-manager
+	-- mini file-manager
 
 	{
 		"echasnovski/mini.files",
@@ -628,7 +620,7 @@ require("lazy").setup({
 		end,
 	},
 
-	-- Surround operations using mini.nvim
+	-- surround operations using mini.nvim
 	{
 		"echasnovski/mini.surround",
 		version = "*",
@@ -637,7 +629,7 @@ require("lazy").setup({
 		end,
 	},
 
-	-- Auto-pairing brackets, quotes, etc.
+	-- auto-pairing brackets, quotes, etc.
 	{
 		"echasnovski/mini.pairs",
 		version = "*",
@@ -650,7 +642,7 @@ require("lazy").setup({
 		end,
 	},
 
-	-- Smooth movement animations
+	-- smooth movement animations
 	{
 		"echasnovski/mini.animate",
 		version = "*",
@@ -662,7 +654,7 @@ require("lazy").setup({
 		end,
 	},
 
-	-- Smart text alignment
+	-- smart text alignment
 	{
 		"echasnovski/mini.align",
 		version = "*",
@@ -671,7 +663,16 @@ require("lazy").setup({
 		end,
 	},
 
-	-- Move lines/selections with arrow keys (keymaps in keymaps.lua)
+	-- magic motions (flash.nvim-like jump-to-anywhere)
+	{
+		"echasnovski/mini.jump2d",
+		version = "*",
+		opts = {
+			view = { dim = true, n_steps_ahead = 1 },
+		},
+	},
+
+	-- move lines/selections with arrow keys (keymaps in keymaps.lua)
 	{
 		"echasnovski/mini.move",
 		version = "*",
@@ -691,7 +692,7 @@ require("lazy").setup({
 		end,
 	},
 
-	-- Remember cursor position in files
+	-- remember cursor position in files
 	{
 		"ethanholz/nvim-lastplace",
 		config = function()
@@ -703,7 +704,7 @@ require("lazy").setup({
 		end,
 	},
 
-	-- Indent guides
+	-- indent guides
 	{
 		"lukas-reineke/indent-blankline.nvim",
 		main = "ibl",
@@ -737,7 +738,7 @@ require("lazy").setup({
 		end,
 	},
 
-	-- Additional plugins
+	-- additional plugins
 	{
 		"echasnovski/mini.icons",
 		version = "*",
@@ -749,20 +750,20 @@ require("lazy").setup({
 	},
 	{ "nvim-lua/plenary.nvim" },
 
-	-- Seamless navigation between nvim splits and tmux panes
+	-- seamless navigation between nvim splits and tmux panes
 	{
 		"christoomey/vim-tmux-navigator",
 		lazy = false,
 	},
 
-	-- Claude terminal integration
+	-- claude terminal integration
 	{
 		dir = "~/.config/nvim/lua/claude-prompt",
 		name = "claude-prompt",
 		dependencies = { "akinsho/toggleterm.nvim" },
 	},
 
-	-- Telescope terminal picker
+	-- telescope terminal picker
 	{
 		"tknightz/telescope-termfinder.nvim",
 		dependencies = { "nvim-telescope/telescope.nvim", "akinsho/toggleterm.nvim" },
@@ -780,7 +781,7 @@ require("lazy").setup({
 		opts = {},
 	},
 
-	-- Code formatting
+	-- code formatting
 	{
 		"stevearc/conform.nvim",
 		event = { "BufWritePre" },
@@ -812,7 +813,7 @@ require("lazy").setup({
 						stdin = false,
 					},
 				},
-				format_on_save = nil, -- Disabled by default, use manual formatting with <space>f
+				format_on_save = nil, -- disabled by default, use manual formatting with <space>f
 				format_after_save = nil,
 			})
 		end,
