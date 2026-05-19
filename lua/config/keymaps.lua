@@ -53,6 +53,7 @@ map("n", "D", '"dD', opts) -- Delete to end of line to 'd' register
 map("n", "de", '"dde', opts) -- Delete to end of word to 'd' register
 map("n", "d$", '"dd$', opts) -- Delete to end of line to 'd' register
 map("n", "C", '"dC', opts) -- Change to end of line to 'd' register
+map("n", "c", '"dc', opts) -- Change to end of word to 'd' register
 
 -- paste from d register without overwriting it
 map("x", "<Space>p", '"dp', opts)
@@ -80,12 +81,21 @@ map("n", "<leader>l", function()
 	require("telescope.builtin").oldfiles({ cwd_only = true })
 end, opts)
 
+-- live_grep_args: pass rg flags inline after `--`
+--   foo -- -t lua            → only Lua files (rg --type)
+--   foo -- -g '*.lua'        → glob include
+--   foo -- -g '!*_test.lua'  → glob exclude
+--   "hello world" -- -t md   → quoted phrase, markdown only
+--   TODO -- -tpy -tjs        → multiple types
+--   foo -- -F                → fixed string (no regex)
+--   foo -- -w                → whole word
+--   foo -- --iglob '**/config/**' → restrict to path
 map("n", "<leader>k", function()
 	require("telescope").extensions.live_grep_args.live_grep_args()
 end, opts)
 
 map("n", "<leader>K", function()
-	require("telescope").extensions.live_grep_args({
+	require("telescope").extensions.live_grep_args.live_grep_args({
 		vimgrep_arguments = {
 			"rg",
 			"--color=never",
