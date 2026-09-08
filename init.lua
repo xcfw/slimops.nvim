@@ -437,7 +437,6 @@ require("lazy").setup({
 			"hrsh7th/cmp-nvim-lsp",
 			"L3MON4D3/LuaSnip",
 			"saadparwaiz1/cmp_luasnip",
-			"zbirenbaum/copilot.lua",
 		},
 		config = function()
 			local cmp = require("cmp")
@@ -593,7 +592,22 @@ require("lazy").setup({
 		},
 		config = function()
 			local telescope = require("telescope")
-			telescope.setup()
+      local lga_actions = require("telescope-live-grep-args.actions")
+			telescope.setup({
+        extensions = {
+          live_grep_args = {
+            auto_quoting = true,
+            mappings = {
+              i = {
+                ["<C-k>"] = lga_actions.quote_prompt(),
+                ["<C-l>"] = lga_actions.quote_prompt({ postfix = " --iglob " }),
+                -- freeze the current list and start a fuzzy search in the frozen list
+                ["<C-i>"] = lga_actions.to_fuzzy_refine,
+              },
+            },
+          },
+        },
+      })
 			telescope.load_extension("live_grep_args")
 		end,
 	},

@@ -81,15 +81,15 @@ map("n", "<leader>l", function()
 	require("telescope.builtin").oldfiles({ cwd_only = true })
 end, opts)
 
--- live_grep_args: pass rg flags inline after `--`
---   foo -- -t lua            → only Lua files (rg --type)
---   foo -- -g '*.lua'        → glob include
---   foo -- -g '!*_test.lua'  → glob exclude
---   "hello world" -- -t md   → quoted phrase, markdown only
---   TODO -- -tpy -tjs        → multiple types
---   foo -- -F                → fixed string (no regex)
---   foo -- -w                → whole word
---   foo -- --iglob '**/config/**' → restrict to path
+-- live_grep_args: pass rg flags with C-k, C-i, C-l:
+-- | Prompt                     | Args                                | Description                            |
+-- | ---                        | ---                                 | ---                                    |
+-- | `foo bar`                  | `foo bar`                           | search for „foo bar“                   |
+-- | `"foo bar" baz`            | `foo bar`, `baz`                    | search for „foo bar“ in dir „baz“      |
+-- | `--no-ignore "foo bar`     | `--no-ignore`, `foo bar`            | search for „foo bar“ ignoring ignores  |
+-- | `"foo" --iglob **/test/**` | search for „foo“ in any „test“ path |                                        |
+-- | `"foo" ../other-project`   | `foo`, `../other-project`           | search for „foo“ in `../other-project` |
+
 map("n", "<leader>k", function()
 	require("telescope").extensions.live_grep_args.live_grep_args()
 end, opts)
